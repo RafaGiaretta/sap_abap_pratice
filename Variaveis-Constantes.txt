@@ -1,0 +1,27 @@
+REPORT z_employee_list_02.
+
+
+TABLES zemployees.
+
+*ULINE.
+*
+*
+*SELECT * FROM zemployees.
+*  CONCATENATE zemployees-surname zemployees-forename INTO DATA(fullname) SEPARATED BY space .
+*  WRITE: / 'Fullname:  ' ,fullname, '- Date of Birth: ', zemployees-dob.
+*ENDSELECT.
+
+
+DATA integer01        TYPE i VALUE 22.
+DATA packed_decimal01 TYPE p DECIMALS 1 VALUE '5.5'. "Aspas simples para nao finalizar a linha no ponto, e TYPE "P" por ser um numero compactado DECIMALS "1" uma casa apos a virgula
+
+DATA packed_decimal02 LIKE packed_decimal01.
+DATA packed_decimal03 LIKE packed_decimal01.
+DATA packed_decimal04 LIKE packed_decimal01.
+
+
+DATA new_surname LIKE zemployees-surname.
+
+CONSTANTS mtconstant01 TYPE p DECIMALS 1 VALUE '6.6'.
+
+CONSTANTS mtconstant01 TYPE p DECIMALS 1 VALUE 6.

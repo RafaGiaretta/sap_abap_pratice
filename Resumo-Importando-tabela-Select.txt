@@ -1,0 +1,37 @@
+REPORT z_employee_list_01 LINE-SIZE 132.
+
+
+TABLES zemployees.
+
+SELECT * FROM zemployees.
+  WRITE  zemployees.
+ENDSELECT.
+
+ULINE. "Add um underline para separar
+
+SELECT * FROM zemployees.
+  WRITE / zemployees.
+ENDSELECT.
+
+ULINE.
+
+SELECT * FROM zemployees.
+  WRITE  zemployees.
+  WRITE /.
+ENDSELECT.
+
+ULINE.
+
+SKIP 2.
+
+SELECT * FROM zemployees.
+  WRITE  zemployees.
+ENDSELECT.
+
+SKIP 2.
+
+
+SELECT * FROM zemployees.
+  CONCATENATE zemployees-surname zemployees-forename INTO DATA(fullname) SEPARATED BY space .
+  WRITE: / 'Fullname:  ' ,fullname, '- Date of Birth: ', zemployees-dob.
+ENDSELECT.
