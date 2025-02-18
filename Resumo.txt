@@ -1,0 +1,122 @@
+*&---------------------------------------------------------------------*
+*& Report Z_PROG01
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_prog01.
+
+*WRITE'Hello World'.
+
+*DECLARACAO DE VARIAVEIS
+*DATA <nome da variavel> TYPE <tipo da variavel> LENGTH <tamanho> VALUE <valor a ser impresso>
+
+*DATA nome TYPE c LENGTH 40.
+*DATA idade TYPE integer.
+*Endereco de cobranca
+*DATA endereco TYPE c LENGTH 50.
+*DATA cidade TYPE c LENGTH 20.
+*DATA estado TYPE c LENGTH 2 VALUE 'SP'.
+*DATA cep TYPE c LENGTH 14.
+*
+*LIKE - DATA <nome da variavel> LIKE  <nome da variavel de origem>
+*Endereco de Entrega
+*DATA endereco2 LIKE endereco.
+*DATA cidade2 LIKE cidade.
+*DATA estado2 LIKE estado.
+*DATA cep2 LIKE cep.
+*
+*CONSTANTS chave_de_compra TYPE c LENGTH 10 VALUE '1K2J3'.
+*nome = 'Nome 1'.
+*idade = 32.
+*
+*Endereco de cobranca
+*endereco = 'Rua 1'.
+*cidade = 'Cidade 1'.
+*cep = '55000-002'.
+*
+*Endereco de Entrega
+*endereco2 = 'Rua 2'.
+*cidade2 = 'Cidade 2'.
+*cep2 = '55000-001'.
+*
+*WRITE : 'Chave de compra: ', chave_de_compra.
+*WRITE : /'Nome: ', nome.
+*WRITE : /'Idade: ', idade.
+*WRITE : /'Endereco de cobranca: ', endereco.
+*WRITE : /'Cep de cobranca: ', cep.
+*WRITE : /'Enredeco de Entrega: ', endereco2.
+*WRITE : /'Cep de entrega: ', cep2.
+
+*OPERADORES MATEMATICOS
+
+*DATA adicao TYPE i.
+*DATA sub TYPE i.
+*DATA mult TYPE i.
+*DATA div TYPE i.
+*DATA exp TYPE i.
+*
+*adicao = x + y.
+*sub = x - y.
+*mult = x * y.
+*div = x / y.
+*exp = x ** y.
+
+*OPERADORES DE COMPARACAO
+*
+*DATA x  TYPE i.
+*DATA y LIKE x.
+*
+*x = 10.
+*y = 10.
+*
+*IF x = y.
+*  WRITE 'x e igual a y'.
+*ELSEIF x < y.
+*  WRITE 'x e menor que y'.
+*ELSEIF x > y.
+*  WRITE ' x e maior que y'.
+*ELSEIF x <> y.
+*  WRITE ' x e diferente de y'.
+*ELSE.
+*
+*WRITE: 'cai no else'.
+*ENDIF.
+
+*OPERADORES LOGICOS
+*
+*DATA x TYPE i.
+*DATA y LIKE x.
+*
+*x = 3.
+*y = 8.
+*
+*IF x < 7 AND  y < 7.
+*  WRITE: 'Ambos sao menores que 7'.
+*ELSEIF x > 7 OR y > 7.
+*  WRITE: /'X OU Y E MAIOR QUE 7'.
+*ELSE.
+*  WRITE: /' CAI NO ELSE'.
+*ENDIF.
+
+*COMANDO CASE
+
+*DATA hoje TYPE c LENGTH 10.
+*
+*hoje = 'segunda'.
+*CASE hoje.
+*  WHEN 'segunda'.
+*    WRITE :/'Comecando a semana'.
+*  WHEN 'terca' OR 'quarta'.
+*    WRITE :/'Meio da semana'.
+*  WHEN OTHERS.
+*    WRITE :/ 'Semana quase encerrada'.
+*ENDCASE.
+
+* COMANDO WHILE
+*
+*DATA contador TYPE i.
+*contador = 1.
+*WHILE contador < 10.
+*   WRITE :/ 'Loop: ', contador.
+*   contador = contador + 1.
+*ENDWHILE.
