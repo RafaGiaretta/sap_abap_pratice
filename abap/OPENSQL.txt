@@ -1,0 +1,115 @@
+*&---------------------------------------------------------------------*
+*& Report Z_OPENSQL_1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_opensql_1.
+
+*SELECT
+*INSERT
+*MODIFY
+*DELETE
+*
+*sy-subrc = 0.
+
+************************************************
+**** - INSERT
+DATA wa_employees LIKE zemployees.
+
+wa_employees-employee = '10000006'.
+wa_employees-surname = 'WESTMORE'.
+wa_employees-forename = 'BRUCE'.
+wa_employees-title = 'MR'.
+wa_employees-dob = '19921213'.
+
+INSERT zemployees FROM wa_employees.
+
+IF sy-subrc = 0.
+  WRITE 'Record Inserted Correctly'.
+ELSE .
+  WRITE: /' We have areeturn code of ', sy-subrc.
+ENDIF.
+
+*************************************************
+
+CLEAR wa_employees-employee.
+
+wa_employees-employee = '10000007'.
+wa_employees-surname = 'Wayne'.
+wa_employees-forename = 'Clark'.
+wa_employees-title = 'MR'.
+wa_employees-dob = '19941212'.
+
+INSERT zemployees FROM wa_employees.
+
+IF sy-subrc = 0.
+  WRITE /'Record Inserted Correctly'.
+ELSE .
+  WRITE: /' We have areeturn code of ', sy-subrc.
+ENDIF.
+
+************************************************
+**** - UPDATE
+
+wa_employees-employee = '10000007'.
+wa_employees-surname = 'Vayne'.
+wa_employees-forename = 'Crark'.
+wa_employees-title = 'MR'.
+wa_employees-dob = '19941212'.
+
+UPDATE zemployees FROM wa_employees.
+
+IF sy-subrc = 0.
+  WRITE 'Record Updated Correctly'.
+ELSE.
+  WRITE:/ ' We have are return code of ', sy-subrc.
+ENDIF.
+
+************************************************
+**** - MODIFY
+
+wa_employees-employee = '10000007'.
+wa_employees-surname = 'Vayno'.
+wa_employees-forename = 'Eskurco'.
+wa_employees-title = 'MR'.
+wa_employees-dob = '19941212'.
+
+MODIFY zemployees FROM wa_employees.
+
+IF sy-subrc = 0.
+  WRITE /'Record Modified Correctly'.
+ELSE.
+  WRITE: /' We have are return code of ', sy-subrc.
+ENDIF.
+****
+CLEAR wa_employees-employee.
+wa_employees-employee = '10000007'.
+wa_employees-surname = 'Bayno'.
+wa_employees-forename = 'Clarko'.
+wa_employees-title = 'MR'.
+wa_employees-dob = '19941212'.
+
+MODIFY zemployees FROM wa_employees.
+
+IF sy-subrc = 0.
+  WRITE /'Record Modified Correctly'.
+ELSE.
+  WRITE: /' We have are return code of ', sy-subrc.
+ENDIF.
+
+************************************************
+**** - DELETE
+CLEAR wa_employees.
+
+wa_employees-employee = '10000007'.
+*DELETE zemployees WHERE surname = 'BROWN'.
+DELETE zemployees FROM wa_employees. "DELETE tablename FROM workarea.
+
+IF sy-subrc = 0.
+  WRITE :/ 'Record Deleted Correctly'.
+ELSE .
+  WRITE :/ ' We have area return code of ', sy-subrc.
+ENDIF.
+****
+
+CLEAR wa_employees.
