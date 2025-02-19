@@ -1,0 +1,108 @@
+*&---------------------------------------------------------------------*
+*& Report Z_OTHERS_DATA_TYPES
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_others_data_types.
+TABLES zemployees2.
+********************************
+
+* Date and Time Fields
+
+
+* Date fields format : YYYYMMDD with initial value of '00000000'
+DATA : my_date TYPE d VALUE '19921212'.
+
+DATA : my_date2 LIKE sy-datum.
+
+* tIME fields format : HHMMSS with initial value of '000000'
+DATA : my_time TYPE d VALUE '112532'.
+
+DATA : my_time2 LIKE sy-uzeit.
+
+********************************
+********************************
+
+*DATE DATA
+DATA empl_date TYPE d.
+DATA todays_date TYPE d.
+DATA los TYPE i.
+DATA days_count TYPE i.
+DATA put_date TYPE d.
+
+********************************
+
+* TIME DATA
+DATA clock_in TYPE t.
+DATA clock_out TYPE t.
+DATA seconds_diff TYPE i.
+DATA minutes_diff TYPE p DECIMALS 2.
+DATA hours_diff TYPE p DECIMALS 2.
+DATA fut_time TYPE i.
+
+********************************
+
+* CURRENCY & QUANTITY FIELDS
+DATA my_salary LIKE zemployees2-salary.
+DATA my_tax_amt LIKE zemployees2-salary.
+DATA my_net_pay LIKE zemployees2-salary.
+DATA tax_perc TYPE p DECIMALS 2.
+
+
+********************************
+
+* Test Data  & Time Fields Output
+
+WRITE: my_date,
+       / my_date2,
+       / my_time,
+       / my_time2.
+ULINE.
+
+********************************
+
+empl_date = '20090515'.
+todays_date = sy-DAtUM.
+los = todays_date - empl_date.
+WRITE: / los.
+ULINE.
+
+********************************
+
+todays_date  = sy-DAtUM.
+todays_date+4(2) = '12'.
+
+WRITE / todays_date .
+ULINE.
+
+********************************
+
+* TIME CALCULATIONS
+
+clock_in = '114400'.
+clock_out = '150000'.
+seconds_diff = clock_in - clock_out.
+
+
+WRITE: / 'Clock in: ', clock_in, 'Clock out: ', clock_out.
+WRITE: / 'Difference in seconds: ', seconds_diff.
+
+minutes_diff = seconds_diff / 60.
+WRITE: / 'Difference in minutes: ', minutes_diff.
+hours_diff = minutes_diff / 60.
+WRITE: / 'Difference in seconds: ', hours_diff.
+
+ULINE.
+
+********************************
+
+*CURRENCY CALCULATIONS
+tax_perc = '0.20'.
+
+SELECT * FROM zemployees2.
+  WRITE: / zemployees2-surname, zemployees2-salary, zemployees2-ecurrency.
+  my_tax_amt = tax_perc * zemployees2-salary.
+  my_net_pay = zemployees2-salary - my_tax_amt.
+  WRITE: / my_tax_amt, zemployees2-ecurrency,
+         my_net_pay, zemployees2-ecurrency.
+ENDSELECT.
