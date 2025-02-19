@@ -89,4 +89,8 @@ Conclusão
 Criar uma tabela, seus Data Elements e Domínios no SAP envolve definir de maneira clara as estruturas de dados, garantir a reutilização através de Domínios e Data Elements e finalmente, criar a tabela propriamente dita. Esse processo é fundamental para manter a integridade e a consistência dos dados dentro do sistema SAP.|
 
 
+OBS. Sempre adicionar o campo  MANDT e definir como chave primaria e valor inicial, este elemento da tabela vai servir como identificacao independente do cliente.
+Os "dominios" e "data elements" podem ser gerados durante a criacao da tabela, clicando 2 vezes sobre o campo DATA ELEMENTS, e posteriormente DOMINIO, facilitando e acelerando o desenvolvimento.
+Tambem se faz interessante identificar cada componente pelo nome, por padrao, se cria utilizando a letra 'Z' ou 'Y', para evitar conflitos com arquivos do proprio sistema por ex. e em caso de criacao de um dominio adicionar 'ZDO' e DATA ELEMENTS 'ZDE' por exmplo, o que facilita a identificacao.
+
 https://www.udemy.com/course/curso_sapabap/ -> curso bom para introducao e visao geral, porem, alguns trexos estao cortados, mas da uma boa nocao BASICA sobre ( Incluso no Personal Plan da Udemy).
