@@ -1,0 +1,160 @@
+*&---------------------------------------------------------------------*
+*& Report Z_CHARACTER_STRINGS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_character_strings.
+*
+*TABLES zemployees.
+*
+*DATA mychar(10) TYPE c.
+*
+*DATA zemployees1(40) TYPE c.
+**DATA lv_fullname TYPE string.
+**
+**lv_fullname  = |{ zemployees-surname } { zemployees-forename }|.
+**
+**
+**WRITE: 'Name: ', lv_fullname.
+
+
+****************************
+
+DATA znumber1 TYPE n.
+
+
+****************************
+
+DATA : title(15)             TYPE c VALUE 'Mr',
+       surname(40)           TYPE c VALUE 'Smith',
+       forename(40)          TYPE c VALUE 'joe',
+       sep,
+       destination(200)      TYPE c,
+       spaced_name(50)       TYPE c VALUE 'Mr                    Joe        Smith',
+       len                   TYPE i,
+       surname2(40),
+       exmpl_num(150),
+       mystring(30),
+       a1                    LIKE mystring,
+       a2                    LIKE mystring,
+       a3                    LIKE mystring,
+       sep2(2)               TYPE c VALUE '**',
+       int_telephone_num(17) TYPE c,
+       country_code(3)       TYPE c,
+       telephone_num(14)     TYPE c.
+
+
+
+* Concatenating String Fields
+*CONCATENATE f1 f2 INTO d1 SEPARATED BY space.
+
+CONCATENATE title surname forename INTO destination SEPARATED BY sep.
+WRITE: destination.
+
+ULINE.
+
+
+* Condensing Character Strings
+WRITE spaced_name.
+CONDENSE spaced_name.
+WRITE:/ spaced_name.
+
+ULINE.
+
+
+* Find the Length of a String
+
+
+len = strlen( surname ).
+WRITE: 'The length of the SURNAME field is: ', len.
+ULINE.
+
+* Replace Character Strings
+
+surname2 = 'Mr, Jose,  Smith,'.
+WHILE sy-subrc = 0.
+  REPLACE ',' WITH '.' INTO surname2.
+ENDWHILE.
+WRITE surname2.
+ULINE.
+
+* Searching for Specific Characters
+surname2 = 'Mr Joe Smith'.
+SEARCH surname2 FOR 'nJoe'.
+WRITE:/ 'Searching: "Mr Joe Smith"'.
+SKIP.
+
+* Blank Spaces are ignored
+SEARCH surname2 FOR 'Joe     ' .
+WRITE: / 'Searching FOR "Joe    "'.
+WRITE: / 'sy-subrc: ', sy-subrc, / 'sy-fdpos: ', sy-fdpos.
+ULINE.
+
+* Blank Spaces are taken into account
+SEARCH surname2 FOR '.   Joe . ' .
+WRITE: / 'Searching FOR ".Joe     ."'.
+WRITE: / 'sy-subrc: ', sy-subrc, / 'sy-fdpos: ', sy-fdpos.
+ULINE.
+
+* Wild card search - word ending with 'mit'
+SEARCH surname2 FOR '*ith ' .
+WRITE: / 'Searching FOR "*ith"'.
+WRITE: / 'sy-subrc: ', sy-subrc, / 'sy-fdpos: ', sy-fdpos.
+ULINE.
+
+* Wild card search - word srtart with 'Smi'
+SEARCH surname2 FOR 'Smi* ' .
+WRITE: / 'Searching FOR "Smi*"'.
+WRITE: / 'sy-subrc: ', sy-subrc, / 'sy-fdpos: ', sy-fdpos.
+ULINE.
+
+****************************
+
+* SHIFT Statement
+
+exmpl_num = '0000654321'.
+WRITE exmpl_num.
+SHIFT exmpl_num LEFT DELETING LEADING '0'.
+WRITE exmpl_num.
+ULINE.
+
+exmpl_num = '0000654321'.
+SHIFT exmpl_num.
+WRITE exmpl_num.
+ULINE.
+
+exmpl_num = '0000654321'.
+SHIFT exmpl_num CIRCULAR.
+WRITE exmpl_num.
+ULINE.
+
+****************************
+* SPLIT Statement - Splitting Character Strings
+
+
+*mystring = ' 1234** ABCD **6789'.
+mystring = ' 1234** ABCD **6789**WXYZ'.
+WRITE mystring.
+SKIP.
+
+SPLIT mystring AT sep2 INTO a1 a2 a3.
+WRITE / a1.
+WRITE / a2.
+WRITE / a3.
+
+* SubFields
+int_telephone_num     = '+44-(0)207-123456'.
+
+WRITE int_telephone_num.
+SKIP.
+
+country_code = int_telephone_num(3).
+
+telephone_num = int_telephone_num+3(13).
+
+WRITE / country_code.
+WRITE / telephone_num.
+
+country_code+1(2) = '01'.
+
+WRITE: / country_code, int_telephone_num.
