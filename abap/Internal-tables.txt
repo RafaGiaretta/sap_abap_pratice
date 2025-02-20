@@ -1,0 +1,52 @@
+*&---------------------------------------------------------------------*
+*& Report Z_EMPLOYEE_LIST_02
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_employee_list_03.
+
+TABLES zemployees.
+
+*** Internal Table with Header line
+*DATA: BEGIN OF itab01 OCCURS 0,
+*        surname LIKE zemployees-surname,
+*        zdob    LIKE zemployees-dob,
+*      END OF itab01.
+*
+*** New Way of defining Internal TABLES
+*** Line Type
+*TYPES: BEGIN OF line01_typ,
+*         surname LIKE zemployees-surname,
+*         dob     LIKE zemployees-dob,
+*       END OF line01_typ.
+*
+*** Declare the 'Table Type' based on the 'Line Type'
+*TYPES itab02_typ TYPE STANDARD TABLE OF line01_typ.
+*TYPES itab02_typ TYPE SORTED TABLE OF line01_typ WITH UNIQUE KEY surname, dob.
+*
+*** Declare the Table based on the 'Table Type'
+*DATA itab02 TYPE itab02_typ.
+*
+*** Declare the Work Area to use with our Internal Table
+*DATA wa_itab02 TYPE line01_typ.
+
+*** Internal Table with Header line
+
+DATA: BEGIN OF itab01 OCCURS 0,
+        employee LIKE zemployees-employee,
+        surname  LIKE zemployees-surname,
+        forename LIKE zemployees-forename,
+        title    LIKE zemployees-title,
+        dob      LIKE zemployees-dob,
+        los      TYPE i VALUE 3,
+      END OF itab01.
+
+SELECT * FROM zemployees.
+        MOVE zemployees-employee TO itab01-employee.
+        MOVE zemployees-surname  TO itab01-surname.
+        MOVE zemployees-forename TO itab01-forename.
+        MOVE zemployees-title TO itab01-title.
+        MOVE zemployees-dob TO itab01-dob.
+
+ENDSELECT.
+WRITE itab01-surname.
