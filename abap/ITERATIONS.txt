@@ -1,0 +1,64 @@
+*&---------------------------------------------------------------------*
+*& Report z_iterations_1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+
+REPORT z_iterations_1.
+
+TABLES: zemployees.
+
+DATA: a TYPE i.
+DATA: b TYPE i.
+
+a = 0.
+b = 0.
+
+*********************************************
+*** SELECT LOOP
+*
+*SELECT * FROM zemployees.
+*  WRITE / zemployees.
+*ENDSELECT.
+*
+*********************************************
+*** DO LOOP
+*
+*DO 15 TIMES.
+*  WRITE :/ 'HELLO'.
+*ENDDO.
+*
+*********************************************
+*** WHILE LOOP
+*
+*WHILE a <> 10.
+*  WRITE:/ a.
+*  a = a + 1.
+*ENDWHILE.
+*
+*********************************************
+*** WHILE LOOP
+*
+*WHILE a < 10.
+*  WRITE:/ 'a: ',a.
+*  a = a + 1.
+*  b = 0.
+*  WHILE b < 10.
+*    WRITE: 'b: ',b.
+*    b = b + 1.
+*  ENDWHILE.
+*ENDWHILE.
+
+
+********************************************
+** LOOP TERMINATION EXIT
+
+
+DO 15 TIMES.
+  WRITE: / 'Loop cycle: ', a.
+  a = a + 1.
+  IF sy-index = 3.
+    EXIT.
+  ENDIF.
+ENDDO.
+WRITE: /' End Loop'.

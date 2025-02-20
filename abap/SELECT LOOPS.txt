@@ -1,0 +1,63 @@
+*&---------------------------------------------------------------------*
+*& Report Z_LOGIC_1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_logic_1.
+
+DATA: surname(15) TYPE c.
+DATA: forename LIKE surname.
+
+surname = 'BROWN'.
+forename = 'JOHN'.
+
+
+
+IF surname = ' SMITH'.
+  WRITE 'Youve won a car!'.
+  WRITE 'Youve won a car!'.
+  IF forename = 'JOHN'.
+    WRITE 'Youve won a car!'.
+    WRITE 'Youve won a car!'.
+    IF surname = 'BRYAN'.
+      WRITE 'Youve won a car!'.
+      WRITE 'Youve won a car!'.
+    ELSE .
+      WRITE 'So close'.
+    ENDIF.
+    WRITE 'Youve won a car!'.
+  ENDIF.
+ENDIF.
+
+* EQ, NE, LT, GT, LE, GE
+* = , <>, <,   >, <=, >=
+*OR AND NOT
+
+IF surname = ' SMITH' OR forename = 'JOHN' .
+  WRITE 'Youve won a car!'.
+ENDIF.
+
+************************************
+**
+
+IF surname = ' SMITH'.
+  WRITE 'Youve won a car!'.
+  WRITE 'Youve won a car!'.
+  IF forename = 'JOHN'.
+    WRITE 'Youve won a car!'.
+  ELSE.
+    WRITE 'SOO CLOSE'.
+  ENDIF.
+ENDIF.
+
+************************************
+** CASE Statement
+
+CASE surname.
+  WHEN 'SMITH'.
+    WRITE 'Youve won a plane!'.
+  WHEN 'JOHN'.
+    WRITE 'Youve won a boat!'.
+  WHEN OTHERS.
+    WRITE 'UNLUCKY!!'.
+ENDCASE.
