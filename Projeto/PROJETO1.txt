@@ -1,0 +1,96 @@
+REPORT Z_TAREFAS.
+
+TABLES: ZTB_TAREFA.
+
+DATA: t_tarefa1 TYPE TABLE OF ZTB_TAREFA,   " Tabela interna para armazenar as tarefas
+      wa_tarefa1 TYPE ZTB_TAREFA.          " Work area para manipulação dos dados
+
+FIELD-SYMBOLS: <fs_tarefa1> LIKE LINE OF t_tarefa1. "LINE do tipo da tabela interna
+
+* Tela de seleção para filtragem
+SELECTION-SCREEN BEGIN OF BLOCK mb_1 WITH FRAME TITLE TEXT-001. " Inicio do bloco de consulta
+  SELECT-OPTIONS: id FOR ZTB_TAREFA-ID_TAREFA NO-EXTENSION, " Campos para comparacao com banco de dados
+                  tit FOR ZTB_TAREFA-TITULO NO-EXTENSION NO INTERVALS,
+                  desc FOR ZTB_TAREFA-DESCRICAO NO-EXTENSION NO INTERVALS,
+                  dtc FOR ZTB_TAREFA-DATA_CRIACAO NO-EXTENSION ,
+                  dtv FOR ZTB_TAREFA-DATA_VENCIMENTO NO-EXTENSION,
+                  stts FOR ZTB_TAREFA-STATUS NO-EXTENSION NO INTERVALS,
+                  prior FOR ZTB_TAREFA-PRIORIDADE NO-EXTENSION  NO INTERVALS.
+SELECTION-SCREEN END OF BLOCK mb_1. " Final do bloco
+
+* Selecionando dados da tabela ZTB_TAREFA com base nos filtros do usuário
+SELECT * FROM ZTB_TAREFA    "Query SQL comparando os valores do bloco com os da tabela interna.
+  INTO TABLE t_tarefa1
+  WHERE ID_TAREFA IN id
+    AND TITULO IN tit
+    AND DESCRICAO IN desc
+    AND DATA_CRIACAO IN dtc
+    AND DATA_VENCIMENTO IN dtv
+    AND STATUS IN stts
+    AND PRIORIDADE IN prior.
+
+* Exibindo os resultados
+LOOP AT t_tarefa1 INTO wa_tarefa1. " Loop mostrando cada resultado
+  WRITE: / wa_tarefa1-ID_TAREFA, wa_tarefa1-TITULO, wa_tarefa1-STATUS.
+ENDLOOP.
+
+SKIP 2.
+
+ULINE.
+
+SKIP 2.
+
+SELECTION-SCREEN BEGIN OF BLOCK mb_2 WITH FRAME TITLE TEXT-002. " Inicio do bloco para inserir nova tarefa
+  PARAMETERS: p_id TYPE ZTB_TAREFA-ID_TAREFA,                     " PARAMETERS especifica que sera um campo de entrada com nome da variavel e o tipo igual da tabela utilizada
+              p_titulo    TYPE ZTB_TAREFA-TITULO,
+              p_desc      TYPE ZTB_TAREFA-DESCRICAO,
+              p_dtc       TYPE ZTB_TAREFA-DATA_CRIACAO,
+              p_dtv       TYPE ZTB_TAREFA-DATA_VENCIMENTO,
+              p_stts      TYPE ZTB_TAREFA-STATUS,
+              p_prior     TYPE ZTB_TAREFA-PRIORIDADE.
+SELECTION-SCREEN END OF BLOCK mb_2. " Final do bloco
+
+SELECTION-SCREEN PUSHBUTTON /10(20) P_BUTTON USER-COMMAND INSERT. " Criacao de um botao clicavel + o comando "CRUD" que sera chamado
+
+INITIALIZATION.
+P_BUTTON = 'Inserir Tarefa'. " Texto no botao
+
+AT SELECTION-SCREEN. " Ao ser clicado
+PERFORM inserir_tarefa. " Chama a funcao inserir_tarefa definida no final do programa em um FORMS
+
+
+
+
+
+
+*&---------------------------------------------------------------------*
+*& Form inserir_tarefa
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM inserir_tarefa .
+
+* Preenche um novo objeto com os valores do bloco
+  wa_tarefa1-ID_TAREFA    = p_id.
+  wa_tarefa1-TITULO       = p_titulo.
+  wa_tarefa1-DESCRICAO    = p_desc.
+  wa_tarefa1-DATA_CRIACAO = p_dtc.
+  wa_tarefa1-DATA_VENCIMENTO = p_dtv.
+  wa_tarefa1-STATUS       = p_stts.
+  wa_tarefa1-PRIORIDADE   = p_prior.
+
+INSERT INTO ZTB_TAREFA VALUES WA_TAREFA1.
+
+*MODIFY ZTB_TAREFA FROM WA_TAREFA1.
+
+IF SY-SUBRC = 0 .
+  WRITE: / 'Tarefa inserida com sucesso'.
+ELSE.
+  WRITE: / 'Erro ao inserir'.
+ENDIF.
+
+
+ENDFORM.
