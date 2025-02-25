@@ -93,4 +93,3 @@ OBS. Sempre adicionar o campo  MANDT e definir como chave primaria e valor inici
 Os "dominios" e "data elements" podem ser gerados durante a criacao da tabela, clicando 2 vezes sobre o campo DATA ELEMENTS, e posteriormente DOMINIO, facilitando e acelerando o desenvolvimento.
 Tambem se faz interessante identificar cada componente pelo nome, por padrao, se cria utilizando a letra 'Z' ou 'Y', para evitar conflitos com arquivos do proprio sistema por ex. e em caso de criacao de um dominio adicionar 'ZDO' e DATA ELEMENTS 'ZDE' por exmplo, o que facilita a identificacao.
 
-https://www.udemy.com/course/curso_sapabap/ -> curso bom para introducao e visao geral, porem, alguns trexos estao cortados, mas da uma boa nocao BASICA sobre ( Incluso no Personal Plan da Udemy).
