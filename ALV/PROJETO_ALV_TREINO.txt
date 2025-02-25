@@ -1,0 +1,101 @@
+*&---------------------------------------------------------------------*
+*& Report Z_TAREFAS_ALV
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_tarefas_alv.
+
+TABLES ztb_tarefa.
+
+*Criacao da tabela interna e work area
+
+DATA: it_tarefas TYPE TABLE OF ztb_tarefa,
+      wa_tarefas TYPE ztb_tarefa,
+      wa_fcat    TYPE slis_fieldcat_alv, " WorkArea fieldcat
+      it_fcat    TYPE slis_t_fieldcat_alv. " Tabela interna do tipo fieldcat
+
+* Tela de selecao e designer
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS :  id FOR ztb_tarefa-id_tarefa.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+* Buscando os dados e preenchendo tabela interna
+SELECT * FROM ztb_tarefa INTO TABLE it_tarefas
+  WHERE id_tarefa IN id.
+
+* Calcular prazo
+
+LOOP AT it_tarefas INTO wa_tarefas.
+
+  CALL FUNCTION 'DAYS_BETWEEN_TWO_DATES'
+    EXPORTING
+      i_datum_bis = sy-datum
+      i_datum_von = wa_tarefas-data_vencimento
+    IMPORTING
+      e_tage      = wa_tarefas-prazo
+    .
+  IF sy-subrc <> 0.
+    MESSAGE 'Erro ao calcular prazo' TYPE 'E'.
+  ENDIF.
+
+
+
+  MODIFY it_tarefas FROM wa_tarefas.
+ENDLOOP.
+
+* Definindo designer do catalogo ALV
+
+wa_fcat-col_pos = '1'.
+wa_fcat-fieldname = 'ID_TAREFA'.
+wa_fcat-seltext_l = 'Id da tarefa'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '2'.
+wa_fcat-fieldname = 'TITULO'.
+wa_fcat-seltext_l = 'Titulo da tarefa'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '3'.
+wa_fcat-fieldname = 'DESCRICAO'.
+wa_fcat-seltext_l = 'Descricao da tarefa'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '6'.
+wa_fcat-fieldname = 'DATA_CRIACAO'.
+wa_fcat-seltext_l = 'Data de Criacao'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '7'.
+wa_fcat-fieldname = 'DATA_VENCIMENTO'.
+wa_fcat-seltext_l = 'Data de Vencimento'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '4'.
+wa_fcat-fieldname = 'STATUS'.
+wa_fcat-seltext_l = 'Status'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '5'.
+wa_fcat-fieldname = 'PRIORIDADE'.
+wa_fcat-seltext_l = 'Prioridade'.
+APPEND wa_fcat TO it_fcat.
+
+wa_fcat-col_pos = '8'.
+wa_fcat-fieldname = 'PRAZO'.
+wa_fcat-seltext_l = 'Prazo ( dias )'.
+APPEND wa_fcat TO it_fcat.
+
+
+
+* Display -> chamar a funcao REUSE_ALV_GRID_DISPLAY
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    it_fieldcat = it_fcat
+  TABLES
+    t_outtab    = it_tarefas.
+IF sy-subrc <> 0.
+  MESSAGE 'Erro ao gerar catalogo' TYPE 'E'.
+ENDIF.

@@ -1,0 +1,106 @@
+REPORT ycustomer_sales_order.
+
+
+
+
+* DECLARE STRUCT WITH REQUIRE FIELDS
+
+TYPES : BEGIN OF ty_kna1,
+          kunnr TYPE kunnr,        " Customer number
+          land1 TYPE land1_gp,    " Customer Country
+          Name1 TYPE name1_gp,    " Customer name
+          ort01 TYPE ort01_gp,   " Customer city
+        END OF ty_kna1,
+
+        BEGIN OF ty_vbak,
+          vbeln TYPE vbeln_va,   "SALES ORDER NUMBER
+          erdat TYPE erdat,     "Date
+          erzet TYPE erzet,     "Time
+          ernam TYPE ernam,     "Created by
+          kunnr TYPE kunnr,     "Customer Number
+        END OF ty_vbak,
+
+        BEGIN OF ty_final,
+          kunnr  TYPE kunnr,        " Customer number
+          land1  TYPE land1_gp,    " Customer Country
+          Name1  TYPE name1_gp,    " Customer name
+          ort01  TYPE ort01_gp,   " Customer city
+          vbeln1 TYPE vbeln_va,    "SALES ORDER NUMBER
+          erdat  TYPE erdat,       "Date
+          erzet  TYPE erzet,       "Time
+          ernam  TYPE ernam,       "Created by
+*          kunnr  TYPE kunnr,       "Customer Number
+        END OF ty_final.
+
+
+* DECLARE INTERNAL TABLE AND WORK AREAS BASED ON THE STRUCTURES
+
+DATA: it_kna   TYPE TABLE OF ty_kna1,
+      wa_kna   TYPE ty_kna1,
+      it_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+      it_final TYPE TABLE OF ty_final,
+      wa_final TYPE ty_final,
+      lv_kunnr TYPE kunnr.
+
+
+* SELECTION SCREEN DESIGNING
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS so_kunnr FOR lv_kunnr.
+
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+
+* FETCH THE DATA FROM DATABASE TABLES
+
+SELECT  kunnr land1 name1 ort01 FROM kna1 INTO TABLE it_kna
+  WHERE kunnr IN so_kunnr.
+
+
+IF it_kna IS NOT INITIAL.
+  SELECT vbeln erdat erzet ernam kunnr FROM vbak INTO TABLE it_vbak
+    FOR ALL ENTRIES IN it_kna
+    WHERE kunnr = it_kna-kunnr.
+ENDIF.
+
+
+
+* POPULATING THE DATA IN TO FINAL INTERNAL TABLE
+
+LOOP AT it_vbak INTO wa_vbak.
+  wa_final-vbeln1 = wa_vbak-vbeln.
+  wa_final-erdat = wa_vbak-erdat.
+  wa_final-erzet = wa_vbak-erzet.
+  wa_final-kunnr = wa_vbak-kunnr.
+  wa_final-ernam = wa_vbak-ernam.
+
+*SYNTEX READ -> READ <TABLE> INTO <WA NAME> WITH KEY <KEY FIELD NAMAE>
+  READ TABLE it_kna INTO  wa_kna WITH KEY kunnr = wa_vbak-kunnr.
+
+  IF sy-subrc = 0.
+    wa_final-land1 = wa_kna-land1.
+    wa_final-name1 = wa_kna-name1.
+    wa_final-ort01 = wa_kna-ort01.
+  ENDIF.
+
+  APPEND wa_final TO it_final.
+
+ENDLOOP.
+
+
+* Display
+
+
+LOOP AT it_final INTO wa_final.
+  WRITE: / wa_final-kunnr,
+           wa_final-land1,
+           wa_final-name1,
+           wa_final-ort01,
+           wa_final-vbeln1,
+           wa_final-erdat,
+           wa_final-erzet,
+           wa_final-ernam.
+ENDLOOP.

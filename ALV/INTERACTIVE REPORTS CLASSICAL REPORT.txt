@@ -1,0 +1,74 @@
+*&---------------------------------------------------------------------*
+*& Report YINTERACTIVE_REPORT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT yinteractive_report.
+
+
+* Struct declaration
+
+TYPES: BEGIN OF ty_kna1,
+         kunnr TYPE kunnr,
+         land1 TYPE land1_gp,
+         name1 TYPE name1_gp,
+         ort01 TYPE ort01_gp,
+       END OF ty_kna1,
+
+       BEGIN OF ty_vbak,
+         vbeln TYPE vbeln_va,
+         erdat TYPE erdat,
+         erzet TYPE erzet,
+         ernam TYPE ernam,
+       END OF ty_vbak.
+
+* Internal tables and work area declaration
+
+DATA: it_kna1  TYPE TABLE OF ty_kna1,
+      wa_kna1  TYPE ty_kna1,
+      it_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+      lv_kunnr TYPE kunnr.
+
+
+* SELECTION SCREEN  desinging
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+
+  SELECT-OPTIONS : so_kunnr FOR lv_kunnr.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+* Fetch the data from database table
+
+SELECT kunnr land1 name1 ort01 FROM kna1 INTO TABLE it_kna1
+  WHERE kunnr IN so_kunnr.
+IF sy-subrc <> 0.
+  MESSAGE 'No customer exists with the given input' TYPE 'E'.
+
+ENDIF.
+*Display
+
+LOOP AT it_kna1 INTO wa_kna1.
+  WRITE: / wa_kna1-kunnr, wa_kna1-land1, wa_kna1-name1, wa_kna1-ort01.
+  HIDE  wa_kna1-kunnr.
+ENDLOOP.
+
+
+AT LINE-SELECTION.
+
+  SELECT vbeln erdat erzet ernam FROM vbak INTO TABLE it_vbak
+    WHERE kunnr =  wa_kna1-kunnr.
+ 
+  IF sy-subrc <> 0.
+    MESSAGE 'No customer exists with the given input' TYPE 'E'.
+
+  ENDIF.
+
+  LOOP AT it_vbak INTO wa_vbak.
+    WRITE : / wa_vbak-vbeln,
+    wa_vbak-erdat,
+    wa_vbak-erzet,
+    wa_vbak-ernam.
+  ENDLOOP.
