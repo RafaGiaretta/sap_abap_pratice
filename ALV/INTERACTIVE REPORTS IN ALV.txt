@@ -1,0 +1,143 @@
+*&---------------------------------------------------------------------*
+*& Report YCUSTOMER_SALES_ALV
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ycustomer_sales_alv.
+
+* Struct declaration
+
+TYPES: BEGIN OF ty_kna1,
+         kunnr TYPE kunnr,
+         land1 TYPE land1_gp,
+         name1 TYPE name1_gp,
+         ort01 TYPE ort01_gp,
+       END OF ty_kna1,
+
+       BEGIN OF ty_vbak,
+         vbeln TYPE vbeln_va,
+         erdat TYPE erdat,
+         ezert TYPE erzet,
+         ernam TYPE ernam,
+       END OF ty_vbak.
+
+
+* Internal table and work area
+DATA: it_kna1  TYPE TABLE OF ty_kna1,
+      wa_kna1  TYPE ty_kna1,
+      it_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+      lv_kunnr TYPE kunnr,
+      it_Fcat  TYPE slis_t_fieldcat_alv,
+      wa_Fcat  TYPE slis_fieldcat_alv,
+      wa_layo  TYPE slis_layout_alv.
+
+
+* Selection screen designing
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS: so_kunnr FOR lv_kunnr.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+* Fetch data
+
+SELECT kunnr land1 name1 ort01 FROM kna1 INTO TABLE it_kna1
+  WHERE kunnr IN so_kunnr.
+
+*Field catalog designing
+CLEAR wa_Fcat.
+wa_fcat-col_pos = '1'.
+wa_fcat-fieldname = 'KUNNR'.
+wa_fcat-seltext_l = 'Customer Number'.
+wa_fcat-no_zero = 'X'.
+wa_fcat-hotspot = 'X'.
+APPEND wa_Fcat TO it_Fcat.
+
+CLEAR wa_Fcat.
+wa_fcat-col_pos = '2'.
+wa_fcat-fieldname = 'LAND1'.
+wa_fcat-seltext_l = 'Customer Country'.
+APPEND wa_Fcat TO it_Fcat.
+
+CLEAR wa_Fcat.
+wa_fcat-col_pos = '3'.
+wa_fcat-fieldname = 'NAME1'.
+wa_fcat-seltext_l = 'Customer Name'.
+APPEND wa_Fcat TO it_Fcat.
+
+CLEAR wa_Fcat.
+wa_fcat-col_pos = '4'.
+wa_fcat-fieldname = 'ORT01'.
+wa_fcat-seltext_l = 'Customer City'.
+APPEND wa_Fcat TO it_Fcat.
+
+wa_layo-colwidth_optimize = 'X'.
+
+* Display
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    i_callback_program      = sy-repid " Capture current report name
+    i_callback_user_command = 'USER_COMMAND'
+    is_layout               = wa_layo
+    it_fieldcat             = it_Fcat
+  TABLES
+    t_outtab                = it_kna1.
+
+
+FORM user_command USING r_ucomm TYPE sy-ucomm
+                      r_selfield TYPE slis_selfield.
+  CASE r_ucomm.
+    WHEN '&IC1'.
+      READ TABLE it_kna1 INTO wa_kna1 INDEX r_selfield-tabindex.
+      IF sy-subrc = 0.
+
+        SELECT vbeln erdat erzet ernam FROM vbak INTO TABLE it_vbak
+          WHERE kunnr = wa_kna1-kunnr.
+
+        IF sy-subrc <> 0.
+          MESSAGE 'No sales orders for this customer' TYPE 'I'.
+        ENDIF.
+        IF it_vbak IS NOT INITIAL.
+
+          REFRESH it_Fcat.
+          CLEAR wa_Fcat.
+          wa_fcat-col_pos = '1'.
+          wa_fcat-fieldname = 'VBELN'.
+          wa_fcat-seltext_l = 'Sales Order Number'.
+          APPEND wa_fcat TO it_fcat.
+
+          CLEAR wa_Fcat.
+          wa_fcat-col_pos ='2'.
+          wa_fcat-fieldname = 'ERDAT'.
+          wa_fcat-seltext_l = 'Date'.
+          APPEND wa_fcat TO it_fcat.
+
+          CLEAR wa_Fcat.
+          wa_fcat-col_pos ='3'.
+          wa_fcat-fieldname = 'ERZET'.
+          wa_fcat-seltext_l = 'Time'.
+          APPEND wa_fcat TO it_fcat.
+
+          CLEAR wa_Fcat.
+          wa_fcat-col_pos ='4'.
+          wa_fcat-fieldname = 'ERNAM'.
+          wa_fcat-seltext_l = 'Created By'.
+          APPEND wa_fcat TO it_fcat.
+
+          CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+            EXPORTING
+              is_layout   = wa_layo
+              it_fieldcat = it_fcat
+            TABLES
+              t_outtab    = it_vbak.
+
+        ENDIF.
+
+      ENDIF.
+  ENDCASE.
+
+
+ENDFORM.
