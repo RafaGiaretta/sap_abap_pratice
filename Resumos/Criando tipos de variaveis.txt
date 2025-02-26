@@ -1,0 +1,75 @@
+*&---------------------------------------------------------------------*
+*& Report ZCURSO_17
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZCURSO_17.
+*
+** Tipo para variaveis
+*
+*TYPES ly_nome TYPE char100. " Types para especificar que vai ser um tipo, se cria para reutilizacao de tipo e facil manutencao
+*
+*DATA ld_nome TYPE ly_nome. " ld_nome é do tipo ly_nome.
+*
+
+
+*** Tipo de estrutura
+*
+*TYPES ly_scarr TYPE scarr.
+*
+*DATA ls_scarr TYPE ly_scarr.
+
+** Tipo para tabelas internas.
+
+*TYPES ly_scarr_tab TYPE STANDARD TABLE OF scarr.
+*
+*DATA lt_scarr TYPE ly_scarr_tab.
+
+
+** Tipo para range
+*
+*TYPES ly_carrid_r TYPE RANGE OF scarr-carrid.
+*
+*DATA lt_carrid_r TYPE ly_carrid_r.
+
+** Estrutura customizada
+*
+*TYPES: BEGIN OF ly_scarr
+*  , id TYPE scarr-carrid
+*  , nome TYPE scarr-carrname
+*  , END OF ly_scarr.
+*
+*DATA ls_scarr TYPE ly_scarr.
+
+
+** Tipo de tipos
+*
+*TYPES ly_scarr TYPE scarr.
+*TYPES ly_scarr_tab TYPE STANDARD TABLE OF ly_scarr.
+*
+*DATA ls_scarr TYPE ly_scarr.
+*DATA lt_scarr TYPE ly_scarr_tab.
+
+* Tipo com include de estruturas
+
+*TYPES: BEGIN OF ly_scarr
+*  , id TYPE i.
+*  INCLUDE TYPE scarr.
+*TYPES: END OF ly_scarr.
+*
+*DATA ls_scarr TYPE ly_scarr.
+*
+*BREAK-POINT.
+
+
+** Tipos de estrutura e tabelas
+*
+*TYPES LY_SCARR_TAB TYPE STANDARD TABLE OF scarr WITH NON-UNIQUE KEY carrid.
+*TYPES: BEGIN OF ly_scarr
+*  , id TYPE i
+*  , scarr TYPE scarr
+*  , scarr_tab TYPE LY_SCARR_TAB 
+*  , END OF ly_scarr.
+*  
+*  DATA: ls_scarr TYPE ly_scarr.
+

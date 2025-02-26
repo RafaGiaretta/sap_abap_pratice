@@ -1,0 +1,106 @@
+*&---------------------------------------------------------------------*
+*& Report ZCURSO_16
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcurso_16.
+
+* Fieldsymbol funciona como ponteiro em C, referencia uma variavel, nao armazena
+
+
+
+
+** Usando
+*
+*DATA id_text TYPE char100.
+*
+*id_text = 'Teste'.
+*
+** Criando
+*FIELD-SYMBOLS <id_text> TYPE char100.
+*
+*IF <id_text> IS ASSIGNED. " Verificar se tem referencia
+*  WRITE 'Tem referencia'.
+*  ELSE.
+*    WRITE 'Nao tem referencia'.
+*ENDIF.
+*
+*ASSIGN id_text TO <id_text>. "Insere a referencia atraves do ASSIGN
+*
+*IF <id_text> IS ASSIGNED. " Verificar se tem referencia
+*  WRITE / 'Tem referencia'.
+*  ELSE.
+*    WRITE / 'Nao tem referencia'.
+*ENDIF.
+*
+*
+** UNASSIGN <NOME DO FIELD SYMBOLS " Limpar referencia
+
+
+* Usando em estruturas
+
+
+*DATA: ls_scarr TYPE scarr.
+*FIELD-SYMBOLS <ls_scarr> TYPE scarr.
+*
+*ls_scarr-carrid  = 1.
+*ls_scarr-carrname = 'Teste'.
+*
+*ASSIGN ls_scarr TO <ls_scarr>.
+
+
+** Preenchendo com tabela interna
+*
+*DATA: it_scarr TYPE STANDARD TABLE OF scarr.
+*DATA: ls_scarr TYPE scarr.
+*
+** FIELD-SYMBOLS <ls_scarr> TYPE scarr.
+*FIELD-SYMBOLS <ls_scarr> LIKE it_scarr. " -> desta forma referencia a nossa tabela interna
+*
+*SELECT * FROM scarr INTO TABLE it_scarr.
+*
+*
+*LOOP AT it_scarr INTO ls_scarr .
+*  WRITE / ls_scarr-carrname.
+*
+*ENDLOOP.
+
+** Preenchendo com variaveis dinamicas
+*
+*DATA ld_varname TYPE  char100.
+*DATA ld_text TYPE char100.
+*
+*FIELD-SYMBOLS <ld_text> TYPE char100.
+*
+*ld_text = 'Teste'.
+*ld_varname = 'ld_text'.
+*
+*ASSIGN (ld_varname) TO <ld_text>.
+
+** Preenchendo com variaveis dinamicas externas ( de outro programa )
+*
+*DATA ld_varname TYPE  char100.
+*DATA ld_text TYPE char100.
+*
+*FIELD-SYMBOLS <ld_text> TYPE char100.
+*
+*ld_text = 'Teste'.
+*ld_varname = '(ZCURSO_FIELDSYMBOL)ld_text'.  " nome do outro programa entre parenteses seguido do nome da variavel.
+*
+*ASSIGN (ld_varname) TO <ld_text>.
+
+**DATA ls_scarr TYPE STANDARD TABLE OF scarr.
+**
+**FIELD-SYMBOLS <ls_scarr> TYPE scarr.
+**
+**INSERT INITIAL LINE INTO TABLE ls_scarr ASSIGNING <ls_scarr>.
+**
+
+
+*  FS com tipo generico
+
+DATA ld_text TYPE char100.
+
+FIELD-SYMBOLS <ld_text> TYPE ANY. " Util para reutilizar o mesmo field-symbol durante o codigo.
+
+ASSIGN ld_text TO <ld_text>.

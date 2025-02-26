@@ -52,6 +52,7 @@ wa_fcat-fieldname = 'ID_TAREFA'.
 wa_fcat-seltext_l = 'Id da tarefa'.
 APPEND wa_fcat TO it_fcat.
 
+CLEAR wa_fcat.
 wa_fcat-col_pos = '2'.
 wa_fcat-fieldname = 'TITULO'.
 wa_fcat-seltext_l = 'Titulo da tarefa'.
@@ -86,16 +87,3 @@ wa_fcat-col_pos = '8'.
 wa_fcat-fieldname = 'PRAZO'.
 wa_fcat-seltext_l = 'Prazo ( dias )'.
 APPEND wa_fcat TO it_fcat.
-
-
-
-* Display -> chamar a funcao REUSE_ALV_GRID_DISPLAY
-
-CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
-  EXPORTING
-    it_fieldcat = it_fcat
-  TABLES
-    t_outtab    = it_tarefas.
-IF sy-subrc <> 0.
-  MESSAGE 'Erro ao gerar catalogo' TYPE 'E'.
-ENDIF.

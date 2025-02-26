@@ -1,0 +1,119 @@
+*&---------------------------------------------------------------------*
+*& Report ZCRUD_TAREFAS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcrud_tarefas.
+
+
+DATA: lt_tarefas TYPE STANDARD TABLE OF ztb_tarefa.
+DATA: lw_tarefas TYPE ztb_tarefa.
+
+DATA:   wa_fcat TYPE slis_fieldcat_alv
+        , it_fcat TYPE slis_t_fieldcat_alv.
+
+
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS p_id TYPE ztb_tarefa-id_tarefa.
+  PARAMETERS p_tit TYPE ztb_tarefa-titulo.
+  PARAMETERS p_desc TYPE ztb_tarefa-descricao.
+  PARAMETERS p_dt_ven TYPE ztb_tarefa-DATA_vENCIMENTO.
+  PARAMETERS p_sts TYPE ztb_tarefa-status.
+  PARAMETERS p_pri TYPE ztb_tarefa-prioridade.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+lw_tarefas-id_tarefa = p_id.
+lw_tarefas-titulo = p_tit.
+lw_tarefas-descricao = p_desc.
+lw_tarefas-data_criacao = sy-datum.
+lw_tarefas-data_vencimento = p_dt_ven.
+lw_tarefas-status = p_sts.
+lw_tarefas-prioridade = p_pri.
+
+INSERT ztb_tarefa FROM lw_tarefas.
+
+APPEND lw_tarefas TO lt_tarefas.
+
+SELECT * FROM ztb_tarefa INTO TABLE lt_tarefas.
+
+LOOP AT lt_tarefas INTO lw_tarefas.
+
+  CALL FUNCTION 'DAYS_BETWEEN_TWO_DATES'
+    EXPORTING
+      i_datum_bis = sy-datum
+      i_datum_von = lw_tarefas-data_vencimento
+    IMPORTING
+      e_tage      = lw_tarefas-prazo.
+  IF sy-subrc <> 0.
+    MESSAGE 'Erro ao calcular PRAZO!' TYPE 'E' .
+  ENDIF.
+
+  MODIFY lt_tarefas FROM lw_tarefas .
+
+ENDLOOP.
+
+
+
+wa_fcat-col_pos = '1'.
+wa_fcat-fieldname = 'ID_TAREFA'.
+wa_fcat-seltext_l = ' ID da tarefa '.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '2'.
+wa_fcat-fieldname = 'TITULO'.
+wa_fcat-seltext_l = ' Título '.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '3'.
+wa_fcat-fieldname = 'DESCRICAO'.
+wa_fcat-seltext_l = ' Descrição '.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '4'.
+wa_fcat-fieldname = 'DATA_CRIACAO'.
+wa_fcat-seltext_l = ' Data de Criação '.
+wa_fcat-datatype = 'X'.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '5'.
+wa_fcat-fieldname = 'DATA_VENCIMENTO'.
+wa_fcat-seltext_l = ' Data de Vencimento '.
+wa_fcat-edit = 'X'.
+wa_fcat-datatype = 'X'.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '6'.
+wa_fcat-fieldname = 'STATUS'.
+wa_fcat-seltext_l = 'Status '.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '7'.
+wa_fcat-fieldname = 'PRIORIDADE'.
+wa_fcat-seltext_l = ' Prioridade '.
+wa_fcat-edit = 'X'.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+wa_fcat-col_pos = '8'.
+wa_fcat-fieldname = 'PRAZO'.
+wa_fcat-seltext_l = ' Prazo '.
+APPEND wa_fcat TO it_fcat.
+
+CLEAR wa_fcat.
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+    it_fieldcat = it_fcat
+  TABLES
+    t_outtab    = lt_tarefas.
+IF sy-subrc <> 0.
+  MESSAGE 'Erro ao gerar catalogo' TYPE 'I'.
+ENDIF.

@@ -1,0 +1,64 @@
+*&---------------------------------------------------------------------*
+*& Report ZCURSO_OPENSQL
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcurso_opensql.
+
+
+* Select CAMPOS INTO TABLE (onde vai ser colocado estes dados) FROM (tabela a ser consultada).
+
+*DATA: lt_tarefas TYPE STANDARD TABLE OF ZTB_TAREFA.
+*DATA: ls_tarefas TYPE ZTB_TAREFA.
+*
+*SELECT * INTO TABLE lt_tarefas FROM ztb_tarefa.
+*
+*  LOOP AT lt_tarefas INTO ls_tarefas.
+*    WRITE: / ls_tarefas-id_tarefa, ls_tarefas-titulo.
+*
+*  ENDLOOP.
+
+** Insert
+*
+*DATA: lt_tarefas TYPE STANDARD TABLE OF ZTB_TAREFA.
+*DATA: ls_tarefas TYPE ZTB_TAREFA.
+*
+*CLEAR ls_tarefas.
+*
+*ls_tarefas-id_tarefa = 9.
+*ls_tarefas-titulo = 'TESTE INSERT'.
+*
+*INSERT ZTB_TAREFA FROM ls_tarefas. " INSERT nome da tabela que vai receber FROM novo objeto
+*
+
+** UPDATE
+*
+DATA: lt_tarefas TYPE STANDARD TABLE OF ztb_tarefa.
+DATA: ls_tarefas TYPE ztb_tarefa.
+*
+*CLEAR ls_tarefas.
+*
+*ls_tarefas-id_tarefa = 0.
+*ls_tarefas-titulo = 'Teste modify'.
+*
+*MODIFY ztb_tarefa FROM ls_tarefas.
+** OU
+*UPDATE ztb_tarefa SET titulo = 'Teste 2 update' WHERE id_tarefa = ls_tarefas-id_tarefa .
+*
+*SELECT * INTO TABLE lt_tarefas FROM ztb_tarefa.
+*
+*LOOP AT lt_tarefas INTO ls_tarefas.
+*  WRITE: / ls_tarefas-id_tarefa, ls_tarefas-titulo.
+*
+*ENDLOOP.
+
+** DELETE
+*
+*DELETE FROM ztb_tarefa WHERE id_tarefa = 0.
+*
+*SELECT * INTO TABLE lt_tarefas FROM ztb_tarefa.
+*
+*LOOP AT lt_tarefas INTO ls_tarefas.
+*  WRITE: / ls_tarefas-id_tarefa, ls_tarefas-titulo.
+*
+*ENDLOOP.
