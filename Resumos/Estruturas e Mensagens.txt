@@ -1,0 +1,98 @@
+Programa padrão SAP para mostrar SELECTION-SCREEN existentes -> DEMO_SELECTION_SCREEN_EVENTS
+
+** Mensagens
+*
+* S = SUCESSO -> Continua executando programa
+* E = ERRO -> Interrompe programa
+* W = AVISO ->  Interrompe programa
+* I = INFORMACAO -> Pop-up e continua executando programa
+* A = ABORTAR -> Pop-up e nao continua o programa
+* X = CANCELA(dump) -> Forca dump.
+
+
+** Comportamento mensagem
+* Depende muito do local que vai ser utilizada entao testar antes
+
+** Classe de mensagens
+*SE91
+
+
+** Vantagens
+* Lista de Utilizacoes
+* Facilidade no debug
+* Comaprtilhamento de mensagens entre programas
+
+INCLUDE ZCURSO_PARAMETROS_SEL. "include da tela de seleção
+SELECTION-SCREEN BEGIN OF BLOCK b1.
+  PARAMETERS: p_1bim TYPE p DECIMALS 2.
+  PARAMETERS: p_2bim TYPE p DECIMALS 2.
+  PARAMETERS: p_3bim TYPE p DECIMALS 2.
+  PARAMETERS: p_4bim TYPE p DECIMALS 2.
+
+ SELECTION-SCREEN END OF BLOCK b1.
+
+
+
+INCLUDE ZCURSO_PARAMETROS_SOS. " Acao apos tela de seleção
+ START-OF-SELECTION .
+  DATA id_media(12) TYPE p DECIMALS 2.
+
+
+  PERFORM ZCALC_MEDIA.
+
+  WRITE: 'Media igual:', id_media.
+
+INCLUDE ZCURSO_PARAMETROS_FORMS. " Include de forms
+PERFORM ZCALC_MEDIA.
+          FORM zcalc_media .
+  id_media = ( p_1bim + p_2bim + p_3bim + p_4bim ) / 4.
+
+ENDFORM.
+
+
+Contextos globais ou locais
+Depende de onde você declara
+
+Estruturas ->
+
+REPORT ZCURSO_13.
+
+START-OF-SELECTION.
+
+DATA: BEGIN OF ls_cliente , "Estrutura
+  id TYPE int4,
+  nome(20) TYPE c,
+  email(50) TYPE c,
+  END OF ls_cliente.
+
+  ls_cliente-id = 1.
+  ls_cliente-nome = 'Rafael'.
+  ls_cliente-email = 'rafael@email.com'.
+
+  WRITE ls_cliente-id.
+  WRITE ls_cliente-nome.
+  WRITE ls_cliente-email.
+
+
+DATA ld_id TYPE int4. "Declaracao nao estruturada
+DATA ld_nome(20) TYPE c.
+DATA ld_email(50) TYPE c.
+
+ld_id = 1.
+ld_nome = 'Rafael'.
+ld_email = 'rafael@email.com'.
+
+WRITE ld_id.
+WRITE ld_nome.
+WRITE ld_email.
+
+
+DATA: BEGIN OF ls_localizacao
+  , pais(2) TYPE c
+  , uf(2) TYPE c
+  , cidade(40) TYPE c
+  , END OF ls_localizacao.
+
+  ls_localizacao = 'BRSPLins'. " se o campos forem char pode preencher desta forma
+
+  WRITE: / ls_localizacao-pais, ls_localizacao-uf, ls_localizacao-cidade.

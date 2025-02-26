@@ -1,0 +1,85 @@
+Tabelas internas ->
+
+Tabelas normais no SAP são chamadas de tabelas transparentes e as internas emulam uma, porem, seus dados são perdidos após finalização da aplicação.
+
+REPORT ZCURSO_14.
+
+START-OF-SELECTION.
+  DATA it_cliente TYPE STANDARD TABLE OF  ZCURSO_CLIENTE_S.
+  DATA ls_cliente TYPE ZCURSO_CLIENTE_S. " Estrutura da linha da tabela
+
+  " Preencher os dados
+
+  ls_cliente-id = 1.
+  ls_cliente-nome = 'Rafael'.
+  APPEND ls_cliente TO it_cliente.
+
+  ls_cliente-id = 2.
+  ls_cliente-nome = 'Joao'.
+  APPEND ls_cliente TO it_cliente.
+
+  ls_cliente-id = 3.
+  ls_cliente-nome = 'Maria'.
+  APPEND ls_cliente TO it_cliente.
+
+  ls_cliente-id = 4.
+  ls_cliente-nome = 'Pedro'.
+  APPEND ls_cliente TO it_cliente.
+
+  ls_cliente-id = 5.
+  ls_cliente-nome = 'Davi'.
+  APPEND ls_cliente TO it_cliente.
+
+
+* Modificando uma tabela interna
+
+  ls_cliente-id = 2.
+  ls_cliente-nome = 'Joao Silva'.
+  MODIFY it_cliente FROM ls_cliente INDEX 2. " indice do registro e nao pelo ID
+* MODIFY it_cliente FROM ls_cliente WHERE id = 2
+
+* Deletando um valor de tabela interna
+
+  ls_cliente-id = 2.
+  ls_cliente-nome = 'Joao Silva'.
+*  DELETE it_cliente INDEX 2.
+  DELETE it_cliente WHERE id = 2.
+
+
+* CLEAR it_cliente.
+* Ler uma linha de tabela por campo
+
+READ TABLE it_cliente INTO ls_cliente WITH KEY id = 1.
+
+
+* Ler todas as linhas de uma tabela
+
+LOOP AT it_cliente INTO ls_cliente.
+  WRITE: / ls_cliente-id, ls_cliente-nome.
+ENDLOOP.
+
+
+* Modificar uma linha dentro de um loop
+
+LOOP AT it_cliente INTO ls_cliente.
+  ls_cliente-nome = |{ ls_cliente-nome } 2|.
+  MODIFY it_cliente FROm ls_cliente.
+
+ENDLOOP.
+
+LOOP AT it_cliente INTO ls_cliente.
+  WRITE: / ls_cliente-id, ls_cliente-nome.
+ENDLOOP.
+
+* Ordenando dados
+
+SORT it_cliente BY id DESCENDING.
+
+LOOP AT it_cliente INTO ls_cliente.
+  WRITE: / ls_cliente-id, ls_cliente-nome.
+ENDLOOP.
+
+* Deletando linhas duplicadas
+
+SORT it_cliente BY id DESCENDING.
+DELETE ADJACENT DUPLICATES FROM it_cliente COMPARING id.

@@ -1,0 +1,109 @@
+*&---------------------------------------------------------------------*
+*& Report ZCURSO_15
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcurso_15.
+
+* Declarando tabela interna
+
+DATA: it_plane TYPE STANDARD TABLE OF saplane.
+DATA: ls_plane TYPE saplane.
+
+DATA: it_scarr TYPE STANDARD TABLE OF scarr.
+DATA: ls_scarr TYPE scarr.
+
+DATA: it_spfli TYPE STANDARD TABLE OF spfli.
+DATA: ls_spfli TYPE spfli.
+
+* Carregando dados
+
+
+* Avioes
+SELECT * INTO TABLE it_scarr FROM scarr.
+
+* Companhias aereas
+SELECT * INTO TABLE it_plane FROM saplane.
+
+* Voos
+SELECT * INTO TABLE it_spfli FROM spfli.
+
+
+*BREAK-POINT.
+
+
+** Comando LOOP AT
+*WRITE 'LOOP AT'.
+*NEW-LINE.
+*
+*LOOP AT it_plane INTO ls_plane WHERE seatsmax > 200.
+**   WRITE: / 'sy-index', sy-index,  'sy-tabinx', sy-tabix.
+*  WRITE: / ls_plane-planetype, ls_plane-seatsmax.
+*ENDLOOP.
+
+
+* Comando While (Retorna true ou false)
+
+*WHILE sy-index <= lines( it_plane ) .
+**   WRITE:  sy-index,   sy-tabix.
+*
+*    READ TABLE it_plane INTO ls_plane INDEX sy-index.
+*    IF ls_plane-seatsmax > 200 .
+*    WRITE: / ls_plane-planetype, ls_plane-seatsmax.
+*    NEW-LINE.
+*  ENDIF.
+*
+*ENDWHILE.
+
+* Comando de repeticao DO
+
+*WRITE 'DO x TIMES'.
+*NEW-LINE.
+*DO 3 TIMES.
+*  WRITE: 'sy-index', sy-index, 'sy-tabix', sy-tabix.
+*  NEW-LINE.
+*
+*ENDDO.
+
+* Loop dentro de loop
+
+*LOOP AT it_scarr INTO ls_scarr.
+*  WRITE ls_scarr-carrname.
+*  WRITE sy-uline.
+*  LOOP AT it_spfli INTO ls_spfli WHERE carrid = ls_scarr-carrid.
+*    WRITE: ls_spfli-cityfrom, ls_spfli-cityto.
+*    NEW-LINE.
+*  ENDLOOP.
+*
+*ENDLOOP.
+
+* Para para um loop se utiliza o comando EXIT.
+
+
+* Interroperr a iteracao atual se utiliza comando CONTINUE
+
+*EX:
+
+*WHILE sy-index <= lines( it_plane ) .
+**   WRITE:  sy-index,   sy-tabix.
+*
+*    READ TABLE it_plane INTO ls_plane INDEX sy-index.
+*
+*    IF ls_plane-seatsmax > 200 .
+*      CONTINUE.
+*    NEW-LINE.
+*  ENDIF.
+*
+*  WRITE: / ls_plane-planetype, ls_plane-seatsmax.
+*ENDWHILE.
+
+* Loop infinito ( while, do) -> Geralmente se faz processos assincrono, ex emissao de nota fiscal
+
+WRITE 'While infinito'.
+NEW-LINE.
+WHILE 1 = 1.
+  IF sy-index > 5.
+    EXIT.
+  ENDIF.
+
+ENDWHILE.
