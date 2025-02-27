@@ -1,0 +1,125 @@
+REPORT zex_loop_read.
+*
+** Utilizando tabelas mara e makt
+*INCLUDE zex_loop_read_li_ex1.
+
+Objetivo: Combine dados das tabelas KNA1 (dados gerais de cliente) e KNVV (dados de venda do cliente).
+
+DATA: lt_mara TYPE STANDARD TABLE OF mara,
+      wa_mara TYPE mara,
+      lt_makt TYPE STANDARD TABLE OF makt,
+      wa_makt TYPE makt.
+
+SELECT * INTO TABLE lt_mara FROM mara.
+SELECT * INTO TABLE lt_makt FROM makt.
+
+LOOP AT lt_mara INTO wa_mara.
+  READ TABLE lt_makt INTO wa_makt WITH KEY matnr = wa_mara-matnr.
+  IF sy-subrc = 0.
+    WRITE: / 'Numero do material: ', wa_mara-matnr,
+             'Tipo de material: ', wa_mara-mtart,
+             'Descricao do material: ', wa_makt-maktx.
+  ELSE.
+    WRITE: / 'Numero do material: ', wa_mara-matnr,
+             'Tipo de material: ', wa_mara-mtart,
+             'Descricao nao encontrada: ', wa_makt-maktx.
+
+  ENDIF.
+ENDLOOP.
+
+
+** Utilizando tabelas kna1 e knvv
+*INCLUDE zex_loop_read_li_ex2.
+
+Objetivo: Combine dados das tabelas LFA1 (dados gerais de fornecedor) e LFB1 (dados contábeis de fornecedor).
+
+DATA: lt_kna1 TYPE STANDARD TABLE OF kna1 " dados gerais do cliente
+    , wa_kna1 TYPE kna1
+    , lt_knvv TYPE STANDARD TABLE OF knvv " dados de venda do cliente
+    , wa_knvv TYPE knvv.
+
+SELECT * INTO TABLE lt_kna1 FROM kna1.
+SELECT * INTO TABLE lt_knvv FROM knvv WHERE kunnr = wa_kna1-kunnr.
+
+LOOP AT lt_kna1 INTO wa_kna1.
+  READ TABLE lt_knvv INTO wa_knvv WITH KEY kunnr = wa_kna1-kunnr.
+  WRITE: / 'Nome: ', wa_kna1-name1,
+           'Cidade: ', wa_kna1-ort01,
+           'Telefone: ', wa_kna1-telf1,
+           'Organizacao: ', wa_knvv-vkorg,
+           'Distrito de venda: ', wa_knvv-bzirk.
+
+ENDLOOP.
+
+
+** Utilizando tabelas VBAP e VBAK*
+*INCLUDE zex_loop_read_li_ex3.
+
+Objetivo: Combine dados das tabelas VBAK (cabeçalho de documentos de venda) e VBAP (itens de documentos de venda).
+
+DATA: lt_vbak TYPE STANDARD TABLE OF vbak, " Cabecalho de doc de venda
+      wa_vbak TYPE vbak,
+      lt_vbap TYPE STANDARD TABLE OF vbap, " Itens de documentos de venda
+      wa_vbap TYPE vbap.
+
+SELECT * INTO TABLE lt_vbak FROM vbak.
+SELECT * INTO TABLE lt_vbap FROM vbap WHERE vbeln = wa_vbak-vbeln.
+
+
+LOOP AT lt_vbak INTO wa_vbak.
+  READ TABLE lt_vbap INTO wa_vbap WITH KEY vbeln = wa_vbak-vbeln.
+
+  WRITE: / 'Nome do criador: ', wa_vbak-ernam,
+            'Data: ', wa_vbak-erdat,
+            'Tipo de item: ', wa_vbap-posar.
+
+ENDLOOP.
+
+
+** Utilizando tabelas EKPO e EKET
+*INCLUDE z_ex_loop_read_li_ex4.
+
+Objetivo: Combine dados das tabelas EKPO (itens de pedidos de compra) e EKET (cronograma de entregas de pedidos de compra).
+
+DATA: lt_ekpo TYPE STANDARD TABLE OF ekpo, "Itens de pedido de compra
+      wa_ekpo TYPE ekpo,
+      lt_eket TYPE STANDARD TABLE OF eket, " Cronograma de entregas de pedidos
+      wa_eket TYPE eket.
+
+SELECT * INTO TABLE lt_ekpo  FROM ekpo.
+SELECT * INTO TABLE lt_eket FROM eket WHERE  ebeln = wa_ekpo-ebeln.
+
+
+LOOP AT lt_ekpo INTO wa_ekpo.
+  READ TABLE lt_eket INTO wa_eket WITH KEY ebeln = wa_ekpo-ebeln.
+  WRITE: / 'Documento de compra: ', wa_ekpo-uniqueid,
+           'Descricao: ', wa_ekpo-txz01,
+           'Local do deposito: ', wa_ekpo-lgort,
+           'Data de entrega do Item: ', wa_eket-eindt,
+           'Componentes:', wa_eket-chkom.
+
+ENDLOOP.
+
+
+
+* Utilizando tabelas BKPF e BSEG
+
+Objetivo: Combine dados das tabelas BKPF (cabeçalho de documentos contábeis) e BSEG (itens de documentos contábeis).
+
+DATA: lt_bkpf TYPE STANDARD TABLE OF bkpf, " Cabecalho de documentos contábeis
+      wa_bkpf TYPE bkpf,
+      lt_bseg TYPE STANDARD TABLE OF bseg, "Itens de documentos contábeis
+      wa_bseg TYPE bseg.
+
+
+SELECT * INTO TABLE lt_bkpf FROM bkpf.
+SELECT * INTO TABLE lt_bseg FROM bseg.
+
+LOOP AT lt_bkpf INTO wa_bkpf.
+  READ TABLE lt_bseg INTO wa_bseg WITH KEY bukrs = wa_bkpf-bukrs.
+  WRITE: / 'Ano fiscal: ', wa_bkpf-gjahr,
+           'Codigo da empresa', wa_bkpf-bukrs,
+           'Status do documento', wa_bkpf-bstat,
+           'Tipo de taxa', wa_bseg-mwart,
+           'Descricao', wa_bseg-sgtxt.
+ENDLOOP.
