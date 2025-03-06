@@ -3,7 +3,7 @@
 2-> https://www.udemy.com/course/sap-abap-programming-for-beginners > Curso bastante completo, se passa por documentacao, configuracoes de ambiente, tudo muito bem explicado. Por mais que seja em ingles, a didatica e de facil entendimento com um ingles basico. ( Incluso no Personal Plan da Udemy).
 
 3.1-> https://www.udemy.com/course/reports-in-abap/
-3.2-> https://youtube.com/playlist?list=PLnpMwD8LFgjh05i3HTz0OowSufokin24z&si=GrvH4b34gp3oHFMs
+3.2-> https://youtube.com/playlist?list=PLnpMwD8LFgjh05i3HTz0OowSufokin24z&si=GrvH4b34gp3oHFMs -> MUITO BOM PT-BR
 
 
 4-> https://www.youtube.com/watch?v=df_Mn7xDEMI&t

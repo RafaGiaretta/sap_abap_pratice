@@ -6,109 +6,19 @@
 REPORT zef_extrator_dm.
 
 INCLUDE zef_extrator_dm_TOP.
-*TABLES: T004, "-> tabela de consulta do plano de contas
-*        T001, "-> Tabela de consulta de empresas
-*        T880, "-> Tabela de consulta de Sociedade parceira
-*        TGSB, "-> Tabela de divisao
-*        T001K,"-> Tabela de centro de distribuicao
-*        T001W,"-> Tabela de auxilio para avaliacao do centro de distribuicao
-*        SKA1, "-> Tabela de consulta para data de criacao
-*        SKB1, "-> Tabela de consulta para data de ultima modificacao
-*        T004F."-> Tabela de definicao de status do grupo
+*&---------------------------------------------------------------------*
+*& Include          ZEF_EXTRATOR_DM_TOP
+*&---------------------------------------------------------------------*
 
-INCLUDE zef_extrator_dm_SEL.
-**&---------------------------------------------------------------------*
-**& Include          ZEF_EXTRATOR_DM_SEL
-**&---------------------------------------------------------------------*
-*
-*SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*    box_emp AS CHECKBOX DEFAULT ' '. " Default define como nao marcado o checkbox
-*    SELECTION-SCREEN COMMENT 4(20) TEXT-002.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*    box_sp AS CHECKBOX DEFAULT ' '. " Sociedade Parceira
-*    SELECTION-SCREEN COMMENT 4(30) TEXT-003.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*    box_div AS CHECKBOX DEFAULT ' '. " Divisao
-*    SELECTION-SCREEN COMMENT 4(20) TEXT-004.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*     box_cen AS CHECKBOX DEFAULT ' '. " Centro
-*    SELECTION-SCREEN COMMENT 4(20) TEXT-005.
-*  SELECTION-SCREEN END OF LINE.
-*
-*************************************************************************
-*
-*SELECTION-SCREEN BEGIN OF LINE.
-*  PARAMETERS: box_cnt AS CHECKBOX DEFAULT ' '. " Contas
-*  SELECTION-SCREEN COMMENT 4(20) TEXT-006.
-*  SELECTION-SCREEN COMMENT (15) TEXT-012.
-*  PARAMETERS pl_de_c TYPE T004-ktopl.
-*SELECTION-SCREEN END OF LINE.
-*
-*************************************************************************
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*     box_cdc AS CHECKBOX DEFAULT ' '. " Centro de custo
-*    SELECTION-SCREEN COMMENT 4(25) TEXT-007.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*      box_cdl AS CHECKBOX DEFAULT ' '. " Centro de lucro
-*    SELECTION-SCREEN COMMENT 4(25) TEXT-008.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*     box_odi AS CHECKBOX DEFAULT ' '. " Ordem de investimento
-*    SELECTION-SCREEN COMMENT 4(45) TEXT-009.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*     box_epep AS CHECKBOX DEFAULT ' '. " Elemento PEP
-*    SELECTION-SCREEN COMMENT 4(22) TEXT-010.
-*  SELECTION-SCREEN END OF LINE.
-*
-*  SELECTION-SCREEN BEGIN OF LINE.
-*    PARAMETERS:
-*    box_ntw AS CHECKBOX DEFAULT ' '. " Network
-*    SELECTION-SCREEN COMMENT 4(17) TEXT-011.
-*  SELECTION-SCREEN END OF LINE.
-*
-*SELECTION-SCREEN END OF BLOCK b1.
-*
-*************************************************************************
-*
-*SELECTION-SCREEN BEGIN OF BLOCK b2.
-*
-**  SELECTION-SCREEN BEGIN OF LINE.
-**    SELECTION-SCREEN COMMENT (25) TEXT-014.
-**    PARAMETERS: p_dt_i TYPE sy-datum . "Data de criacao Inicio
-**    SELECTION-SCREEN POSITION 40.
-**    SELECTION-SCREEN COMMENT (5) TEXT-013.
-**    PARAMETERS: p_dt_f TYPE sy-datum . "Data de criacao Final
-**  SELECTION-SCREEN END OF LINE.
-*
-*SELECTION-SCREEN END OF BLOCK b2.
-
-
-
-
-INCLUDE zef_extrator_dm_F01.
-
-**********************************
+TABLES: t004, "-> tabela de consulta do plano de contas
+        t001, "-> Tabela de consulta de empresas
+        t880, "-> Tabela de consulta de Sociedade parceira
+        tgsb, "-> Tabela de divisao
+        t001k,"-> Tabela de centro de distribuicao
+        t001w,"-> Tabela de auxilio para avaliacao do centro de distribuicao
+        ska1, "-> Tabela de consulta para data de criacao
+        skb1, "-> Tabela de consulta para data de ultima modificacao
+        t004f."-> Tabela de definicao de status do grupo
 
 TYPES: BEGIN OF ty_parametros, " Tipo de parametros
          valor TYPE j_1bbranch-branch, " https://www.se80.co.uk/sap-function-modules/?name=j_1b_branch_read
@@ -123,9 +33,6 @@ wa_parametros-valor = '7020'.
 APPEND wa_parametros TO it_parametros.
 wa_parametros-valor = '7060'.
 APPEND wa_parametros TO it_parametros.
-
-DATA: p_dt_i TYPE ERDAT_RF VALUE '00000000'.
-DATA: p_dt_f TYPE ERDAT_RF VALUE '00000000'.
 
 DATA: branch_value TYPE n.
 
@@ -154,139 +61,253 @@ DATA: it_skb1 TYPE  STANDARD TABLE OF skb1,
 
 DATA: wa_faus1 TYPE faus1.
 
+DATA: lv_text TYPE string.
+
+DATA: lv_filename TYPE string.
+DATA: lt_conteudo TYPE TABLE OF string,
+      lv_line     TYPE string,
+      lv_datetime TYPE string.
+
+lv_datetime = |{ sy-datum }_{ sy-uzeit }|.
+
+
+INCLUDE zef_extrator_dm_SEL.
+*&---------------------------------------------------------------------*
+*& Include          ZEF_EXTRATOR_DM_SEL
+*&---------------------------------------------------------------------*
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+    box_emp AS CHECKBOX DEFAULT ' '. " Default define como nao marcado o checkbox
+    SELECTION-SCREEN COMMENT 4(20) TEXT-002.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+    box_sp AS CHECKBOX DEFAULT ' '. " Sociedade Parceira
+    SELECTION-SCREEN COMMENT 4(30) TEXT-003.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+    box_div AS CHECKBOX DEFAULT ' '. " Divisao
+    SELECTION-SCREEN COMMENT 4(20) TEXT-004.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+     box_cen AS CHECKBOX DEFAULT ' '. " Centro
+    SELECTION-SCREEN COMMENT 4(20) TEXT-005.
+  SELECTION-SCREEN END OF LINE.
+
+************************************************************************
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS: box_cnt AS CHECKBOX DEFAULT ' '. " Contas
+    SELECTION-SCREEN COMMENT 4(20) TEXT-006.
+    SELECTION-SCREEN COMMENT (15) TEXT-012.
+    PARAMETERS pl_de_c TYPE t004-ktopl.
+  SELECTION-SCREEN END OF LINE.
+
+************************************************************************
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+     box_cdc AS CHECKBOX DEFAULT ' '. " Centro de custo
+    SELECTION-SCREEN COMMENT 4(25) TEXT-007.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+      box_cdl AS CHECKBOX DEFAULT ' '. " Centro de lucro
+    SELECTION-SCREEN COMMENT 4(25) TEXT-008.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+     box_odi AS CHECKBOX DEFAULT ' '. " Ordem de investimento
+    SELECTION-SCREEN COMMENT 4(45) TEXT-009.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+     box_epep AS CHECKBOX DEFAULT ' '. " Elemento PEP
+    SELECTION-SCREEN COMMENT 4(22) TEXT-010.
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS:
+    box_ntw AS CHECKBOX DEFAULT ' '. " Network
+    SELECTION-SCREEN COMMENT 4(17) TEXT-011.
+  SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+************************************************************************
+ULINE.
+SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (25) TEXT-014.
+    PARAMETERS: p_dt_i TYPE sy-datum . "Data de criacao Inicio
+    SELECTION-SCREEN POSITION 40.
+    SELECTION-SCREEN COMMENT (5) TEXT-013.
+    PARAMETERS: p_dt_f TYPE sy-datum . "Data de criacao Final
+  SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF BLOCK b2.
+
+************************************************************************
+ULINE.
+SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-015.
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS: bt_local RADIOBUTTON GROUP rg1.
+    SELECTION-SCREEN COMMENT (25) TEXT-017.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS: bt_serv RADIOBUTTON GROUP rg1.
+    SELECTION-SCREEN COMMENT (25) TEXT-016.
+  SELECTION-SCREEN END OF LINE.
+    SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (30) TEXT-018.
+    PARAMETERS: p_save TYPE string.
+  SELECTION-SCREEN END OF LINE.
+
+
+SELECTION-SCREEN END OF BLOCK b3.
+
+
+INCLUDE zef_extrator_dm_F01.
+
 **********************************
 
 IF box_emp EQ 'X'. " Campo empresa
+  CLEAR lt_conteudo. " Limpando tabela interna para evitar duplicidade caso salve mais de um arquivo ao mesmo tempo
+  CONCATENATE p_save '\INFINITFY_EMPRESA_' lv_datetime '.txt' INTO lv_filename. " Concatenando o caminho de entrada pela aplicacao, nome padrao, data e hora atual  e formato
   SELECT * INTO TABLE it_t001 FROM t001.
-
   LOOP AT it_t001 INTO wa_t001.
     PERFORM buscar_cpnj USING wa_t001-bukrs CHANGING emp_cnpj.
     PERFORM buscar_endereco.
-    WRITE : / 'Empresa', wa_t001-bukrs,
-              ' | Nome', wa_t001-butxt.
-    WRITE:  ' | CNPJ', emp_cnpj.
-    WRITE:  ' | País', wa_t001-land1.
-    WRITE: ' | Rua ', wa_endereco_v-street.
-    WRITE: ', Número', wa_endereco_v-house_num1.
-    WRITE:' - Distrito', wa_endereco_v-city2.
-    WRITE: 'Cidade/Estado', wa_cidade_est-ort01.
-    WRITE:'/', wa_cidade_est-regio.
-    WRITE:'CEP' , wa_endereco_v-post_code1.
-    WRITE: ' | Moeda Padrão', wa_t001-waers.
+    CONCATENATE 'Empresa' wa_t001-bukrs
+              ' | Nome' wa_t001-butxt
+              ' | CNPJ' emp_cnpj
+              ' | País' wa_t001-land1
+              ' | Rua ' wa_endereco_v-street
+              ', Número' wa_endereco_v-house_num1
+              ' - Distrito' wa_endereco_v-city2
+              'Cidade/Estado' wa_cidade_est-ort01
+              '/' wa_cidade_est-regio
+              'CEP'  wa_endereco_v-post_code1
+              ' | Moeda Padrão' wa_t001-waers
+              INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo. " Preenchendo a tabela interna com o conteudo
   ENDLOOP.
+  PERFORM salvar_em_texto. " Funcao para fazer download da tabela interna preenchida
 ENDIF.
 
 **********************************
 
 IF box_sp EQ 'X'. " Campo sociedade parceira
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_SOCIEDADEPARCEIRA_' lv_datetime '.txt' INTO lv_filename.
   SELECT * INTO TABLE it_t880 FROM t880.
   LOOP AT it_t880 INTO wa_t880.
-    WRITE: / 'Sociedade', wa_t880-rcomp,
-             ' | Nome', wa_t880-name1,
-             ' | Raiz', wa_t880-name2,
-             ' | País', wa_t880-cntry,
-             ' | Moeda', wa_t880-curr,
-             ' | Rua', wa_t880-stret,
-             ' | CEP', wa_t880-pstlc,
-             ' | Cidade', wa_t880-city.
+    CONCATENATE 'Sociedade' wa_t880-rcomp
+             ' | Nome' wa_t880-name1
+             ' | Raiz' wa_t880-name2
+             ' | País' wa_t880-cntry
+             ' | Moeda' wa_t880-curr
+             ' | Rua' wa_t880-stret
+             ' | CEP' wa_t880-pstlc
+             ' | Cidade' wa_t880-city
+             INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
   ENDLOOP.
+  PERFORM salvar_em_texto.
 ENDIF.
 
 **********************************
 
 IF box_div EQ 'X'. " Campo divisao
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_DIVISAO_' lv_datetime '.txt' INTO lv_filename.
   SELECT * INTO TABLE it_tgsb FROM tgsb.
   LOOP AT it_tgsb INTO wa_tgsb.
-    WRITE: / 'Divisão', wa_tgsb-gsber,
-             ' | Descrição', wa_tgsb-gsber_glob.
+    CONCATENATE  'Divisão' wa_tgsb-gsber
+                 ' | Descrição' wa_tgsb-gsber_glob
+                 INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
   ENDLOOP.
+  PERFORM salvar_em_texto.
 ENDIF.
 
 IF box_cen EQ 'X'. " Campo centro
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_' lv_datetime '.txt' INTO lv_filename.
   SELECT * INTO TABLE it_t001w FROM t001w.
   LOOP AT it_t001w INTO wa_t001w.
-    WRITE: / 'Centro', wa_t001w-werks,
-             ' | Nome', wa_t001w-name1.
+    CONCATENATE 'Centro' wa_t001w-werks
+             ' | Nome' wa_t001w-name1
+             INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
   ENDLOOP.
+  PERFORM salvar_em_texto.
 ENDIF.
 
 **********************************
 
-IF box_cnt EQ 'X'. " Campo centro
+IF box_cnt EQ 'X'. " Campo contas
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CONTAS_' lv_datetime '.txt' INTO lv_filename.
+
   IF pl_de_c IS INITIAL.
     MESSAGE 'Erro: O campo Plano de Contas é obrigatório.' TYPE 'E'.
   ENDIF.
+
   SELECT * INTO TABLE it_ska1 FROM ska1 WHERE erdat >= p_dt_i.
   LOOP AT it_ska1 INTO wa_ska1.
-    LOOP AT it_skb1 INTO wa_skb1 WHERE saknr = wa_ska1-saknr AND erdat <= p_dt_f.
-      SELECT SINGLE bukrs xspeb INTO wa_skb1
-  FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
 
-      WRITE: ' | Empresa', wa_skb1-bukrs.
-      WRITE: / 'Conta', wa_ska1-saknr.
-      WRITE: ' | Plano_Contas', wa_ska1-ktopl.
+    LOOP AT it_skb1 INTO wa_skb1 WHERE saknr = wa_ska1-saknr AND erdat <= p_dt_f.
+      SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
+
+      CONCATENATE ' | Empresa' wa_skb1-bukrs
+       'Conta' wa_ska1-saknr
+      ' | Plano_Contas' wa_ska1-ktopl
 *      WRITE: ' | Descrição', wa_ska1-txt20. Aparentemente nao existe este campo
-      WRITE: ' | Balanço', wa_ska1-xbilk.
+      ' | Balanço' wa_ska1-xbilk
+      INTO lv_line SEPARATED BY space.
 
       SELECT SINGLE faus1 INTO wa_faus1 FROM t004f WHERE fstag = wa_SKB1-fstag. "Select para centro
       IF wa_faus1+25(1) = '+'.
-        WRITE: ' | Centro', 'X'.
+        CONCATENATE ' | Centro' 'X' INTO lv_line.
       ENDIF.
       IF wa_faus1+8(1) = '+'.
-        WRITE: ' | Material', 'X'.
+        CONCATENATE ' | Material' 'X' INTO lv_line.
       ENDIF.
       IF wa_faus1+9(1) = '+'.
-        WRITE: ' | CCusto', 'X'.
+        CONCATENATE ' | CCusto' 'X' INTO lv_line.
       ENDIF.
       IF wa_faus1+10(1) = '+'.
-        WRITE: ' | Ordem', 'X'.
+        CONCATENATE ' | Ordem' 'X' INTO lv_line.
       ENDIF.
       IF wa_faus1+11(1) = '+'.
-        WRITE: ' | PEP', 'X'.
+        CONCATENATE ' | PEP' 'X' INTO lv_line.
       ENDIF.
       IF wa_faus1+18(1) = '+'.
-        WRITE: ' | Network', 'X'.
+        CONCATENATE ' | Network' 'X' INTO lv_line.
       ENDIF.
-      WRITE: ' | Bl_Lan_Plano', wa_ska1-xspeb.
+      CONCATENATE ' | Bl_Lan_Plano' wa_ska1-xspeb INTO lv_line.
 
       SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
-      WRITE: ' | Empresa', wa_skb1-bukrs.
-      WRITE: ' | Bl_Lan_Empresa', wa_skb1-xspeb.
-
+      CONCATENATE ' | Empresa' wa_skb1-bukrs
+       ' | Bl_Lan_Empresa' wa_skb1-xspeb
+       INTO lv_line.
+      APPEND lv_line TO lt_conteudo.
     ENDLOOP.
+    PERFORM salvar_em_texto.
   ENDLOOP.
 
 ENDIF.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 *&---------------------------------------------------------------------*
 *& Form buscar_cpnj
@@ -334,5 +355,30 @@ FORM buscar_endereco .
     IF sy-subrc <> 0.
     ENDIF.
   ENDLOOP.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form salvar_em_texto
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM salvar_em_texto .
+
+  CALL FUNCTION 'GUI_DOWNLOAD'
+    EXPORTING
+      filename = lv_filename
+      filetype = 'ASC'
+    TABLES
+      data_tab = lt_conteudo
+    EXCEPTIONS
+      OTHERS   = 2.
+  IF sy-subrc = 0.
+    WRITE: 'Arquivo salvo com sucesso!'.
+  ELSE.
+    WRITE: 'Erro ao salvar arquivo'.
+  ENDIF.
 
 ENDFORM.
