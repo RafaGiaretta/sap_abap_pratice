@@ -1,0 +1,89 @@
+*&---------------------------------------------------------------------*
+*& Report ZRELATORIS_VENDA_DETALHADO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zrelatoris_venda_detalhado.
+
+
+TABLES: vbak, " Informações sobre os pedidos de venda
+        vbap, " Itens de venda
+        kna1, " Dados de Clientes
+        mara. " Informações sobre materiais vendidos
+
+DATA: it_vbak TYPE STANDARD TABLE OF vbak,
+      wa_vbak TYPE vbak,
+      it_vbap TYPE STANDARD TABLE OF vbap,
+      wa_vbap TYPE vbap,
+      it_kna1 TYPE STANDARD TABLE OF kna1,
+      wa_kna1 TYPE kna1,
+      it_mara TYPE STANDARD TABLE OF mara,
+      wa_mara TYPE mara.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (55) TEXT-002.
+    SELECT-OPTIONS n_ped FOR vbak-vbeln.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (45) TEXT-003.
+    SELECT-OPTIONS dt_ped FOR vbak-audat.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (30) TEXT-004.
+    SELECT-OPTIONS cod_cli FOR kna1-kunnr.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT (30) TEXT-005.
+    SELECT-OPTIONS cod_mat FOR mara-matnr.
+  SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+START-OF-SELECTION. " Após seleção
+* FAZER SELECT DE ACORDO COM OS FILTROS
+
+
+* Selecionar os pedidos de venda conforme os filtros informados
+SELECT * INTO TABLE it_vbak
+  FROM vbak
+  WHERE vbeln IN n_ped
+  AND audat IN dt_ped.
+
+* Selecionar os clientes conforme os pedidos de venda encontrados
+SELECT * INTO TABLE it_kna1
+  FROM kna1
+  WHERE kunnr IN cod_cli.
+
+* Selecionar os materiais conforme os pedidos de venda encontrados
+SELECT * INTO TABLE it_mara
+  FROM mara
+  WHERE matnr IN cod_mat.
+
+* Selecionar os itens de venda vinculados aos pedidos de venda filtrados
+SELECT * INTO TABLE it_vbap
+  FROM vbap
+  FOR ALL ENTRIES IN it_vbak
+  WHERE vbeln = it_vbak-vbeln.
+
+LOOP AT it_vbak INTO wa_vbak. " LOOP PERCORRE E COPIA LINHA A LINHA UMA TABELA E ARMAZENA NA WORK AREA DEFINIDA
+  LOOP AT it_vbap INTO wa_vbap WHERE vbeln = wa_vbak-vbeln.
+    READ TABLE it_kna1 INTO wa_kna1 WITH KEY kunnr = wa_vbak-kunnr. " READ TABLE BUSCA APENAS O VALOR DE UMA LINHA DENTRO DE UMA TABELA INTERNA, BASEADA EM UM CRITERIO DE CHAVE
+    READ TABLE it_mara INTO wa_mara WITH KEY MATNR = wa_vbap-MATNR.
+
+*Usar LOOP AT quando precisar processar vários registros de uma tabela interna.
+*Usar READ TABLE quando precisar buscar um único registro com base em um critério (mais eficiente do que um LOOP para encontrar um registro específico).
+
+    IF SY-SUBRC = 0.
+      WRITE: / TEXT-006,
+               TEXT-007, wa_vbak-vbeln,
+               TEXT-008, wa_vbak-audat,
+               TEXT-009, wa_kna1-kunnr,
+               TEXT-010, wa_kna1-name1,
+               TEXT-011, wa_vbap-posnr,
+               TEXT-012, wa_mara-matnr,
+               TEXT-013, wa_vbap-kwmeng,
+               TEXT-014, wa_vbap-netwr.
+    ENDIF.
+  ENDLOOP.
+ENDLOOP.
