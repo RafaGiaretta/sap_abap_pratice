@@ -1,0 +1,214 @@
+*&---------------------------------------------------------------------*
+*& Include          ZEF_EXTRATOR_DM_F01
+*&---------------------------------------------------------------------*
+
+*&---------------------------------------------------------------------*
+*& Form buscar_cpnj
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> WA_T001_BUKRS
+*&      <-- EMP_CNPJ
+*&---------------------------------------------------------------------*
+FORM buscar_cpnj  USING    p_wa_t001_bukrs
+                  CHANGING p_emp_cnpj.
+
+  CALL FUNCTION 'J_1BREAD_CGC_COMPANY'
+    EXPORTING
+      bukrs      = p_wa_t001_bukrs
+    IMPORTING
+      cgc_number = p_emp_cnpj.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form buscar_endereco
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM buscar_endereco .
+  LOOP AT it_parametros INTO wa_parametros. " Loop para percorrer todos os parametros da tabela de parametros
+    CALL FUNCTION 'J_1B_BRANCH_READ' " https://www.se80.co.uk/sap-function-modules/?name=j_1b_branch_read
+      EXPORTING
+        branch            = wa_parametros-valor
+        company           = wa_t001-bukrs
+      IMPORTING
+        address           = wa_cidade_est
+*       BRANCH_RECORD     =
+*       CGC_NUMBER        =
+        address_value     = wa_endereco_v
+      EXCEPTIONS
+        branch_not_found  = 1
+        address_not_found = 2
+        company_not_found = 3
+        OTHERS            = 4.
+    IF sy-subrc <> 0.
+    ENDIF.
+  ENDLOOP.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form salvar_em_texto
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM salvar_em_texto .
+
+  CALL FUNCTION 'GUI_DOWNLOAD'
+    EXPORTING
+      filename = lv_filename
+      filetype = 'ASC'
+    TABLES
+      data_tab = lt_conteudo
+    EXCEPTIONS
+      OTHERS   = 2.
+  IF sy-subrc = 0.
+    WRITE: / 'Arquivo salvo com sucesso!'.
+  ELSE.
+    WRITE: 'Erro ao salvar arquivo'.
+  ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form BAPI_Bloc
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM BAPI_Bloc .
+  CALL FUNCTION 'BAPI_INTERNALORDER_GETDETAIL'
+    EXPORTING
+      orderid           = wa_coas-aufnr
+    IMPORTING
+      return            = lv_return
+    TABLES
+      system_status     = lt_system_status
+      user_status       = lt_user_status
+      allowed_bus_tract = lt_allowed_bus_tract.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form BAPI_PEP
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM bapi_pep .
+
+  CALL FUNCTION 'BAPI_BUS2054_GET_STATUS' " https://www.se80.co.uk/sap-function-modules/?name=bapi_bus2054_get_status
+    IMPORTING
+      return          = lv_return2
+    TABLES
+      i_wbs_elements  = lt_i_wbs_elements
+      e_system_status = lt_e_system_status
+      e_user_status   = lt_e_user_status
+      e_result        = lt_e_result.
+
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form status_desc
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM status_desc .
+  LOOP AT lt_e_system_status INTO ls_e_system_status.
+    lv_syst_status = ls_e_system_status-system_status.
+    lv_user_status = ls_e_user_status-user_status.
+    EXIT.
+  ENDLOOP.
+  SELECT SINGLE txt30 INTO lv_status_text FROM tj02t WHERE istat = lv_syst_status AND spras = sy-langu.
+  IF sy-subrc = 0.
+    p_status_text =  lv_status_text.
+  ELSE.
+    WRITE: 'Status não encontrado'.
+  ENDIF.
+  SELECT SINGLE istat INTO lv_istat FROM tj02t WHERE istat = lv_syst_status AND spras = sy-langu.
+  IF lv_istat = c_sys_blok1 OR lv_istat = c_sys_blok2.
+    p_bloqueado_us = 'X'.
+    EXIT.
+  ENDIF.
+
+  SELECT SINGLE estat INTO lv_estat FROM tj30t WHERE txt04 = lv_user_status AND spras = sy-langu.
+  IF lv_estat = c_usu_blok.
+    p_bloqueado_val = 'X'.
+    EXIT.
+  ENDIF.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form BAPI_NETWORK_GETDETAIL
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM bapi_network_getdetail .
+  CALL FUNCTION 'BAPI_NETWORK_GETDETAIL'
+    EXPORTING
+      number     = wa_coas-aufnr
+    IMPORTING
+      return     = lv_return2
+    TABLES
+      e_activity = lt_activity.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form BAPI_BUS2002_GET_STATUS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM bapi_bus2002_get_status .
+  CALL FUNCTION 'BAPI_BUS2002_GET_STATUS'
+    EXPORTING
+      number                   = wa_coas-aufnr
+*     WITHOUT_ACTIVITIES       = ' '
+    IMPORTING
+      return                   = lv_return2
+    TABLES
+*     E_SYSTEM_STATUS          = it_activity
+*     E_USER_STATUS            =
+      e_activity_system_status = it_activity_status
+      e_activity_user_status   = it_user_bapi_status.
+
+  LOOP AT it_activity_status INTO wa_activity_status.
+    SELECT SINGLE txt04 INTO lv_status_desc FROM tj02t WHERE istat = wa_activity_status-system_status.
+    p_status_text = 'Operacao: ' + wa_activity_status-activity + 'Status Sistema:' + wa_activity_status-system_status.
+  ENDLOOP.
+
+  LOOP AT it_user_bapi_status INTO wa_user_bapi_status.
+    SELECT SINGLE estat INTO lv_status_user FROM tj30t WHERE txt04 = wa_user_bapi_status-user_status.
+    p_status_user_text = 'Status usuario: ' + wa_user_bapi_status-user_status.
+  ENDLOOP.
+
+  SELECT SINGLE istat INTO lv_istat FROM tj02t WHERE istat = lv_syst_status AND spras = sy-langu.
+  IF lv_istat = c_sys_blok1 OR lv_istat = c_sys_blok2.
+    p_bloqueado_us = 'X'.
+    EXIT.
+  ENDIF.
+
+  SELECT SINGLE estat INTO lv_estat FROM tj30t WHERE txt04 = lv_user_status AND spras = sy-langu.
+  IF lv_estat = c_usu_blok.
+    p_bloqueado_val = 'X'.
+    EXIT.
+  ENDIF.
+
+ENDFORM.

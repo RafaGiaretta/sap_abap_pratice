@@ -6,10 +6,6 @@
 REPORT zef_extrator_dm.
 
 INCLUDE zef_extrator_dm_TOP.
-*&---------------------------------------------------------------------*
-*& Include          ZEF_EXTRATOR_DM_TOP
-*&---------------------------------------------------------------------*
-
 TABLES: t004, "-> tabela de consulta do plano de contas
         t001, "-> Tabela de consulta de empresas
         t880, "-> Tabela de consulta de Sociedade parceira
@@ -18,7 +14,18 @@ TABLES: t004, "-> tabela de consulta do plano de contas
         t001w,"-> Tabela de auxilio para avaliacao do centro de distribuicao
         ska1, "-> Tabela de consulta para data de criacao
         skb1, "-> Tabela de consulta para data de ultima modificacao
-        t004f."-> Tabela de definicao de status do grupo
+        t004f,"-> Tabela de definicao de status do grupo
+        cdhdr,
+        csks,
+        cskt,
+        cepc,
+        cepc_bukrs,
+        cepct,
+        cmdt_pc,
+        coas,
+        TJ02T,
+        TJ30T.
+
 
 TYPES: BEGIN OF ty_parametros, " Tipo de parametros
          valor TYPE j_1bbranch-branch, " https://www.se80.co.uk/sap-function-modules/?name=j_1b_branch_read
@@ -33,6 +40,23 @@ wa_parametros-valor = '7020'.
 APPEND wa_parametros TO it_parametros.
 wa_parametros-valor = '7060'.
 APPEND wa_parametros TO it_parametros.
+
+TYPES: BEGIN OF ty_parametros_invest, " Tipo de parametros para consulta de investimentos
+         valor TYPE aufnr,
+       END OF ty_parametros_invest.
+
+
+DATA: it_parametros_invest TYPE TABLE OF ty_parametros_invest, " Tabela interna de parametros
+      wa_parametros_invest TYPE ty_parametros_invest. " Work area de parametros
+DATA: it_parametros_invest_MD TYPE TABLE OF ty_parametros_invest, " Tabela interna de parametros
+      wa_parametros_invest_MD TYPE ty_parametros_invest. " Work area de parametros
+
+wa_parametros_invest-valor = '01'.
+APPEND wa_parametros_invest TO it_parametros_invest.
+wa_parametros_invest-valor = '02'.
+APPEND wa_parametros_invest TO it_parametros_invest.
+wa_parametros_invest-valor = '03'.
+APPEND wa_parametros_invest TO it_parametros_invest.
 
 DATA: branch_value TYPE n.
 
@@ -66,9 +90,56 @@ DATA: lv_text TYPE string.
 DATA: lv_filename TYPE string.
 DATA: lt_conteudo TYPE TABLE OF string,
       lv_line     TYPE string,
+      lv_line2    TYPE string,
+      lv_line3    TYPE string,
       lv_datetime TYPE string.
 
 lv_datetime = |{ sy-datum }_{ sy-uzeit }|.
+
+DATA: it_cdhdr TYPE STANDARD TABLE OF cdhdr,
+      wa_cdhdr TYPE cdhdr.
+
+CONSTANTS obj_conta TYPE string VALUE 'SACH'.
+
+DATA: it_csks TYPE STANDARD TABLE OF csks,
+      wa_csks TYPE csks,
+      it_cskt TYPE STANDARD TABLE OF cskt,
+      wa_cskt TYPE cskt.
+
+CONSTANTS obj_ccusto TYPE string VALUE 'KOSTL'.
+
+DATA: it_cepc TYPE STANDARD TABLE OF cepc,
+      wa_cepc TYPE cepc.
+
+DATA: it_cepct TYPE STANDARD TABLE OF cepct,
+      wa_cepct TYPE cepct.
+
+DATA: it_cepc_bukrs TYPE STANDARD TABLE OF cepc_bukrs,
+      wa_cepc_bukrs TYPE cepc_bukrs.
+
+CONSTANTS obj_clucro TYPE string VALUE 'PRCTR'.
+
+DATA: it_cmdt_pc TYPE STANDARD TABLE OF cmdt_pc,
+      wa_cmdt_pc TYPE cmdt_pc.
+
+DATA: it_coas TYPE TABLE OF coas,
+      wa_coas TYPE coas.
+
+CONSTANTS cat_order TYPE string VALUE ''.
+
+DATA: it_cat_order TYPE TABLE OF ty_parametros, " Tabela interna de parametros
+      wa_cat_order TYPE ty_parametros. " Work area de parametros
+
+DATA lv_return TYPE bapireturn.
+
+DATA: lt_system_status     TYPE STANDARD TABLE OF TJ02T,
+      wa_system_status     TYPE TJ02T,
+      lt_user_status       TYPE STANDARD TABLE OF TJ30T,
+      wa_user_status       TYPE TJ30T,
+      lt_allowed_bus_tract TYPE STANDARD TABLE OF bapi2075_5,
+      wa_allowed_status    TYPE bapi2075_5.
+
+**********************************
 
 
 INCLUDE zef_extrator_dm_SEL.
@@ -175,6 +246,10 @@ SELECTION-SCREEN BEGIN OF BLOCK b3 WITH FRAME TITLE TEXT-015.
 
 
 SELECTION-SCREEN END OF BLOCK b3.
+
+
+**********************************
+
 
 
 INCLUDE zef_extrator_dm_F01.
@@ -307,7 +382,309 @@ IF box_cnt EQ 'X'. " Campo contas
     PERFORM salvar_em_texto.
   ENDLOOP.
 
+****************** Contas modificadas
+  CLEAR lt_conteudo.
+  SELECT * FROM cdhdr INTO TABLE it_cdhdr WHERE objectclas = 'OBJ_CONTA' AND udate BETWEEN p_dt_i AND p_dt_f.
+  DATA: lv_ktopl TYPE TABLE OF ska1-saknr.
+  LOOP AT it_cdhdr INTO wa_cdhdr.
+    READ TABLE it_ska1 INTO wa_ska1 WITH KEY ktopl = pl_de_c.
+    READ TABLE it_skb1 INTO wa_skb1 WITH KEY saknr = wa_ska1-saknr.
+    DATA(lv_obj1) = |{ wa_ska1-ktopl }{ wa_ska1-saknr }| .
+    DATA(lv_obj2) = |{ wa_ska1-ktopl }{ wa_skb1-saknr }| .
+
+    CONCATENATE ' | Empresa' wa_skb1-bukrs
+   'Conta' wa_ska1-saknr
+  ' | Plano_Contas' wa_ska1-ktopl
+*      WRITE: ' | Descrição', wa_ska1-txt20. Aparentemente nao existe este campo
+  ' | Balanço' wa_ska1-xbilk
+  INTO lv_line SEPARATED BY space.
+
+    SELECT SINGLE faus1 INTO wa_faus1 FROM t004f WHERE fstag = wa_SKB1-fstag. "Select para centro
+    IF wa_faus1+25(1) = '+'.
+      CONCATENATE ' | Centro' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+8(1) = '+'.
+      CONCATENATE ' | Material' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+9(1) = '+'.
+      CONCATENATE ' | CCusto' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+10(1) = '+'.
+      CONCATENATE ' | Ordem' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+11(1) = '+'.
+      CONCATENATE ' | PEP' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+18(1) = '+'.
+      CONCATENATE ' | Network' 'X' INTO lv_line.
+    ENDIF.
+    CONCATENATE ' | Bl_Lan_Plano' wa_ska1-xspeb INTO lv_line.
+
+    SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
+    CONCATENATE ' | Empresa' wa_skb1-bukrs
+     ' | Bl_Lan_Empresa' wa_skb1-xspeb
+     INTO lv_line.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
 ENDIF.
+
+
+IF box_cdc EQ 'X'.
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_CUSTO_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE  ' Código'
+               ' Area_Contabilidade'
+               ' Descrição'
+               ' Empresa'
+               ' Unidade'
+               ' Responsável'
+               ' Bloqueado'
+               ' Valido_Desde'
+               ' Valido_Ate'
+               INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  DATA lv_ltext TYPE cskt-ltext.
+  SELECT * INTO TABLE it_csks FROM csks WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+  SELECT * INTO TABLE it_cskt FROM cskt.
+  LOOP AT it_csks INTO wa_csks.
+    READ TABLE it_cskt INTO wa_cskt WITH KEY kostl = wa_csks-kostl kokrs = wa_csks-kokrs.
+    lv_ltext = wa_cskt-ltext.
+    CONCATENATE  wa_csks-kostl
+                 wa_csks-kokrs
+                 lv_ltext
+                 wa_csks-bukrs
+                 wa_csks-gsber
+                 wa_csks-verak
+                 wa_csks-bkzkp
+                 wa_csks-datab
+                 wa_csks-datbi
+                 INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+******************* Centro de contas Modificado
+  CLEAR lt_conteudo.
+  CLEAR it_cdhdr.
+  CONCATENATE p_save '\INFINITFY_CENTRO_CUSTO_MOD_' lv_datetime '.txt' INTO lv_filename.
+  DATA lv_objectid1 TYPE c LENGTH 10.
+  SELECT * INTO TABLE it_csks FROM csks.
+  LOOP AT it_csks INTO wa_csks.
+    lv_objectid1 = wa_csks-kostl.
+    lv_objectid1 = |{ lv_objectid1 ALPHA = IN }|.
+    DATA(lv_objectid) = |{ wa_csks-kokrs }{ lv_objectid1 }|.
+
+    SELECT * INTO TABLE it_cdhdr FROM cdhdr WHERE objectid = lv_objectid AND objectclas = obj_ccusto AND udate BETWEEN p_dt_i AND p_dt_f.
+    CONCATENATE  ' Código'
+                 ' Area_Contabilidade'
+                 ' Descrição'
+                 ' Empresa'
+                 ' Unidade'
+                 ' Responsável'
+                 ' Bloqueado'
+                 ' Valido_Desde'
+                 ' Valido_Ate'
+                 INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+    LOOP AT it_cdhdr INTO wa_cdhdr.
+
+      READ TABLE it_cskt INTO wa_cskt WITH KEY kostl = wa_csks-kostl kokrs = wa_csks-kokrs.
+      lv_ltext = wa_cskt-ltext.
+      CONCATENATE  wa_csks-kostl
+                   wa_csks-kokrs
+                   lv_ltext
+                   wa_csks-bukrs
+                   wa_csks-gsber
+                   wa_csks-verak
+                   wa_csks-bkzkp
+                   wa_csks-datab
+                   wa_csks-datbi
+                   INTO lv_line SEPARATED BY ' | '.
+      APPEND lv_line TO lt_conteudo.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+
+IF box_cdl EQ 'X'.
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_LUCRO_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Valido_Desde'
+              'Valido_Ate'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+
+  SELECT * INTO TABLE it_cepc FROM cepc WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+  SELECT * INTO TABLE it_cepct FROM cepct.
+  SELECT * INTO TABLE it_cepc_bukrs FROM cepc_bukrs.
+  SORT it_cepct BY prctr.
+
+  LOOP AT it_cepc INTO wa_cepc.
+    READ TABLE it_cepct INTO wa_cepct WITH KEY prctr = wa_cepc-prctr BINARY SEARCH.
+    CONCATENATE wa_cepc-prctr
+                wa_cepct-ktext
+                INTO lv_line SEPARATED BY ' | '.
+    LOOP AT it_cepc_bukrs INTO wa_cepc_bukrs WHERE kokrs = wa_cepc-kokrs AND prctr = wa_cepc-prctr.
+      CONCATENATE wa_cepc_bukrs-bukrs
+                   ' '
+        INTO lv_line2 SEPARATED BY ' - '.
+    ENDLOOP.
+    CONCATENATE
+          wa_cepc-verak
+          wa_cepc-lock_ind
+          wa_cepc-datab
+          wa_cepc-datbi
+          INTO lv_line3 SEPARATED BY ' | '.
+    lv_line = |{ lv_line }{ lv_line2 }{ lv_line3 }|.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+****************** Lucro modificadas
+*
+*  CLEAR lt_conteudo.
+*  CLEAR it_cdhdr.
+*  CLEAR it_cepc.
+*  CLEAR wa_cdhdr.
+*  CLEAR lt_conteudo.
+*  CONCATENATE p_save '\INFINITFY_CENTRO_LUCRO_MOD_' lv_datetime '.txt' INTO lv_filename.
+*
+*  CONCATENATE 'Código'
+*              'Descrição'
+*              'Empresa'
+*              'Unidade'
+*              'Responsável'
+*              'Bloqueado'
+*              'Valido_Desde'
+*              'Valido_Ate'
+*              INTO lv_line SEPARATED BY ' | '.
+*  APPEND lv_line TO lt_conteudo.
+*
+*  SELECT * INTO TABLE it_cepc FROM cepc WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+*  SELECT * INTO TABLE it_cdhdr FROM cdhdr WHERE objectclas = 'OBJ_CLUCRO' AND udate BETWEEN p_dt_i AND p_dt_f.
+*  SELECT prctr kokrs INTO TABLE it_cepc FROM cepc.
+*  SELECT prctr objnr INTO TABLE it_cmdt_pc FROM cmdt_pc WHERE kokrs = cepc-kokrs.
+*
+*  LOOP AT it_cepc INTO wa_cepc.
+*    lv_objectid1 = wa_cepc-prctr.
+*    lv_objectid1 = |{ lv_objectid1 ALPHA = IN }|.
+*    lv_objectid = |{ wa_cepc-kokrs }{ lv_objectid1 }|.
+*    LOOP AT it_cmdt_pc INTO wa_cmdt_pc.
+*      DATA(lv_objectid2) = |{ wa_cepc-kokrs }{ wa_cmdt_pc-objnr }|.
+*
+*      READ TABLE it_cdhdr INTO wa_cdhdr WITH KEY objectid = lv_objectid.
+*      IF sy-subrc = 0.
+*        CONCATENATE
+*
+*
+*
+*
+*          INTO lv_line SEPARATED BY ' | '.
+*        APPEND lv_line TO lt_conteudo.
+*
+*
+*      ELSE.
+*        READ TABLE it_cdhdr INTO wa_cdhdr WITH KEY objectid = lv_objectid2.
+*        IF sy-subrc = 0.
+*          CONCATENATE
+*
+*
+*            INTO lv_line SEPARATED BY ' | '.
+*          APPEND lv_line TO lt_conteudo.
+*
+*        ENDIF.
+*
+*      ENDIF.
+*    ENDLOOP.
+*   PERFORM salvar_em_texto.
+*  ENDLOOP.
+
+ENDIF.
+
+IF box_odi EQ 'X'. " TABELA COAS ESTA ZERADA NO SISTEMA - fiz a logica mas nao consegui testar
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_ORDEM_INVESTIMENTO_' lv_datetime '.txt' INTO lv_filename.
+
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Status Sistema'
+              'Status Usuário'
+              'Validação'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_parametros_invest INTO wa_parametros_invest.
+    SELECT * FROM coas INTO TABLE it_coas WHERE autyp = wa_parametros_invest-valor AND erdat BETWEEN p_dt_i AND p_dt_f. " Tirar duvida do select (erro no tipo do campo AUTYP na it)
+    LOOP AT it_coas INTO wa_coas.
+      READ TABLE lt_system_status INTO wa_system_status INDEX 1.
+      READ TABLE lt_user_status INTO wa_user_status INDEX 1.
+      READ TABLE lt_allowed_bus_tract INTO wa_allowed_status INDEX 1.
+      PERFORM  BAPI_Bloc. "https://www.se80.co.uk/sap-function-modules/?name=bapi_internalorder_getdetail
+      CONCATENATE wa_coas-aufnr
+                  wa_coas-ktext
+                  wa_coas-bukrs
+                  wa_coas-werks
+                  wa_coas-user2
+                  lv_return
+                  wa_system_status-istat
+                  wa_user_status-estat " Faltou fazer a validacao Se TJ02T-ISTAT = SYS_BLOK ou TJ30T-ESTAT = USU_BLOK, será retornado “X”.
+                  INTO lv_line SEPARATED BY ' | '.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+***************** Investimento modificadas
+*  CONCATENATE p_save '\INFINITFY_ORDEM_INVESTIMENTO_MOD_' lv_datetime '.txt' INTO lv_filename.
+
+
+
+
+
+ENDIF.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 *&---------------------------------------------------------------------*
 *& Form buscar_cpnj
@@ -376,9 +753,30 @@ FORM salvar_em_texto .
     EXCEPTIONS
       OTHERS   = 2.
   IF sy-subrc = 0.
-    WRITE: 'Arquivo salvo com sucesso!'.
+    WRITE: / 'Arquivo salvo com sucesso!'.
   ELSE.
     WRITE: 'Erro ao salvar arquivo'.
   ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form BAPI_Bloc
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM BAPI_Bloc .
+  CALL FUNCTION 'BAPI_INTERNALORDER_GETDETAIL'
+    EXPORTING
+      orderid           = wa_coas-aufnr
+    IMPORTING
+      return            = lv_return
+    TABLES
+      system_status     = lt_system_status
+      user_status       = lt_user_status
+      allowed_bus_tract = lt_allowed_bus_tract.
+
 
 ENDFORM.

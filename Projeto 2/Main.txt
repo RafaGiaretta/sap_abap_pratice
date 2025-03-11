@@ -1,0 +1,535 @@
+*&---------------------------------------------------------------------*
+*& Report ZEF_EXTRATOR_DM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zef_extrator_dm.
+
+INCLUDE zef_extrator_dm_TOP.
+INCLUDE zef_extrator_dm_SEL.
+INCLUDE zef_extrator_dm_F01.
+
+START-OF-SELECTION.
+
+**********************************
+
+IF box_emp EQ 'X'. " Campo empresa
+  CLEAR lt_conteudo. " Limpando tabela interna para evitar duplicidade caso salve mais de um arquivo ao mesmo tempo
+  CONCATENATE p_save '\INFINITFY_EMPRESA_' lv_datetime '.txt' INTO lv_filename. " Concatenando o caminho de entrada pela aplicacao, nome padrao, data e hora atual  e formato
+  SELECT * INTO TABLE it_t001 FROM t001 WHERE bukrs LIKE '7%'.
+      CONCATENATE 'Empresa'
+                ' | Nome'
+                ' | CNPJ'
+                ' | País'
+                ' | Rua '
+                ', Número'
+                ' - Distrito'
+                'Cidade/Estado'
+                'CEP'
+                ' | Moeda Padrão'
+                INTO lv_line SEPARATED BY space.
+      APPEND lv_line TO lt_conteudo. " Preenchendo a tabela interna com o conteudo
+  LOOP AT it_t001 INTO wa_t001.
+    PERFORM buscar_cpnj USING wa_t001-bukrs CHANGING emp_cnpj.
+    IF emp_cnpj IS INITIAL.
+      PERFORM buscar_endereco.
+      CONCATENATE wa_t001-bukrs
+                  wa_t001-butxt
+                  emp_cnpj
+                  wa_t001-land1
+                  wa_endereco_v-street
+                  wa_endereco_v-house_num1
+                  ' - ' wa_endereco_v-city2
+                  wa_cidade_est-ort01
+                  '/' wa_cidade_est-regio
+                  wa_endereco_v-post_code1
+                 wa_t001-waers
+                INTO lv_line SEPARATED BY ' | '.
+      APPEND lv_line TO lt_conteudo. " Preenchendo a tabela interna com o conteudo
+    ENDIF.
+  ENDLOOP.
+  PERFORM salvar_em_texto. " Funcao para fazer download da tabela interna preenchida
+
+ENDIF.
+
+**********************************
+
+IF box_sp EQ 'X'. " Campo sociedade parceira
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_SOCIEDADEPARCEIRA_' lv_datetime '.txt' INTO lv_filename.
+  SELECT * INTO TABLE it_t880 FROM t880.
+    CONCATENATE  'Sociedade'
+                 ' | Nome'
+                 ' | Raiz'
+                 ' | País'
+                 ' | Moeda'
+                 ' | Rua'
+                 ' | CEP'
+               ' | Cidade'
+             INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
+  LOOP AT it_t880 INTO wa_t880.
+    CONCATENATE  wa_t880-rcomp
+                 wa_t880-name1
+                 wa_t880-name2
+                 wa_t880-cntry
+                 wa_t880-curr
+                 wa_t880-stret
+                 wa_t880-pstlc
+                 wa_t880-city
+             INTO lv_line SEPARATED BY  ' | '.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_div EQ 'X'. " Campo divisao
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_DIVISAO_' lv_datetime '.txt' INTO lv_filename.
+  SELECT * INTO TABLE it_tgsb FROM tgsb.
+  CONCATENATE 'Divisão'
+              ' | Descrição'
+              INTO lv_line SEPARATED BY space.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_tgsb INTO wa_tgsb.
+    CONCATENATE wa_tgsb-gsber
+                wa_tgsb-gsber_glob
+                 INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_cen EQ 'X'. " Campo centro
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_' lv_datetime '.txt' INTO lv_filename.
+  SELECT * INTO TABLE it_t001w FROM t001w.
+    CONCATENATE 'Centro'
+             ' | Nome'
+             INTO lv_line SEPARATED BY space.
+    APPEND lv_line TO lt_conteudo.
+  LOOP AT it_t001w INTO wa_t001w.
+    CONCATENATE wa_t001w-werks
+                wa_t001w-name1
+             INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_cnt EQ 'X'. " Campo contas
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CONTAS_' lv_datetime '.txt' INTO lv_filename.
+  IF pl_de_c IS INITIAL.
+    MESSAGE 'Erro: O campo Plano de Contas é obrigatório.' TYPE 'E'.
+  ENDIF.
+  SELECT * INTO TABLE it_ska1 FROM ska1 WHERE erdat >= p_dt_i.
+  LOOP AT it_ska1 INTO wa_ska1.
+    LOOP AT it_skb1 INTO wa_skb1 WHERE saknr = wa_ska1-saknr AND erdat <= p_dt_f.
+      SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
+      CONCATENATE ' | Empresa' wa_skb1-bukrs
+                  ' | Conta' wa_ska1-saknr
+                  ' | Plano_Contas' wa_ska1-ktopl
+*                 ' | Descrição', wa_ska1-txt20. Aparentemente nao existe este campo
+                  ' | Balanço' wa_ska1-xbilk
+                  INTO lv_line SEPARATED BY space.
+      SELECT SINGLE faus1 INTO wa_faus1 FROM t004f WHERE fstag = wa_SKB1-fstag. "Select para centro
+      IF wa_faus1+25(1) = '+'.
+        CONCATENATE ' | Centro' 'X' INTO lv_line.
+      ENDIF.
+      IF wa_faus1+8(1) = '+'.
+        CONCATENATE ' | Material' 'X' INTO lv_line.
+      ENDIF.
+      IF wa_faus1+9(1) = '+'.
+        CONCATENATE ' | CCusto' 'X' INTO lv_line.
+      ENDIF.
+      IF wa_faus1+10(1) = '+'.
+        CONCATENATE ' | Ordem' 'X' INTO lv_line.
+      ENDIF.
+      IF wa_faus1+11(1) = '+'.
+        CONCATENATE ' | PEP' 'X' INTO lv_line.
+      ENDIF.
+      IF wa_faus1+18(1) = '+'.
+        CONCATENATE ' | Network' 'X' INTO lv_line.
+      ENDIF.
+      CONCATENATE ' | Bl_Lan_Plano' wa_ska1-xspeb INTO lv_line.
+      SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
+      CONCATENATE ' | Empresa' wa_skb1-bukrs
+                  ' | Bl_Lan_Empresa' wa_skb1-xspeb
+                  INTO lv_line.
+      APPEND lv_line TO lt_conteudo.
+    ENDLOOP.
+    PERFORM salvar_em_texto.
+  ENDLOOP.
+
+****************** Contas modificadas
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CONTAS_MOD' lv_datetime '.txt' INTO lv_filename.
+  SELECT * FROM cdhdr INTO TABLE it_cdhdr WHERE objectclas = 'OBJ_CONTA' AND udate BETWEEN p_dt_i AND p_dt_f.
+  DATA: lv_ktopl TYPE TABLE OF ska1-saknr.
+  LOOP AT it_cdhdr INTO wa_cdhdr.
+    READ TABLE it_ska1 INTO wa_ska1 WITH KEY ktopl = pl_de_c.
+    READ TABLE it_skb1 INTO wa_skb1 WITH KEY saknr = wa_ska1-saknr.
+    DATA(lv_obj1) = |{ wa_ska1-ktopl }{ wa_ska1-saknr }| .
+    DATA(lv_obj2) = |{ wa_ska1-ktopl }{ wa_skb1-saknr }| .
+    CONCATENATE ' | Empresa' wa_skb1-bukrs
+                'Conta' wa_ska1-saknr
+                ' | Plano_Contas' wa_ska1-ktopl
+*               ' | Descrição', wa_ska1-txt20. Aparentemente nao existe este campo
+                ' | Balanço' wa_ska1-xbilk
+              INTO lv_line SEPARATED BY space.
+    SELECT SINGLE faus1 INTO wa_faus1 FROM t004f WHERE fstag = wa_SKB1-fstag. "Select para centro
+    IF wa_faus1+25(1) = '+'.
+      CONCATENATE ' | Centro' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+8(1) = '+'.
+      CONCATENATE ' | Material' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+9(1) = '+'.
+      CONCATENATE ' | CCusto' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+10(1) = '+'.
+      CONCATENATE ' | Ordem' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+11(1) = '+'.
+      CONCATENATE ' | PEP' 'X' INTO lv_line.
+    ENDIF.
+    IF wa_faus1+18(1) = '+'.
+      CONCATENATE ' | Network' 'X' INTO lv_line.
+    ENDIF.
+    CONCATENATE ' | Bl_Lan_Plano' wa_ska1-xspeb INTO lv_line.
+    SELECT SINGLE bukrs xspeb INTO wa_skb1 FROM skb1 WHERE saknr = wa_ska1-saknr AND bukrs = wa_skb1-bukrs.
+    CONCATENATE ' | Empresa' wa_skb1-bukrs
+                ' | Bl_Lan_Empresa' wa_skb1-xspeb
+                INTO lv_line.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_cdc EQ 'X'.
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_CUSTO_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE  ' Código'
+               ' Area_Contabilidade'
+               ' Descrição'
+               ' Empresa'
+               ' Unidade'
+               ' Responsável'
+               ' Bloqueado'
+               ' Valido_Desde'
+               ' Valido_Ate'
+               INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  DATA lv_ltext TYPE cskt-ltext.
+  SELECT * INTO TABLE it_csks FROM csks WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+  SELECT * INTO TABLE it_cskt FROM cskt.
+  LOOP AT it_csks INTO wa_csks.
+    READ TABLE it_cskt INTO wa_cskt WITH KEY kostl = wa_csks-kostl kokrs = wa_csks-kokrs.
+    lv_ltext = wa_cskt-ltext.
+    CONCATENATE  wa_csks-kostl
+                 wa_csks-kokrs
+                 lv_ltext
+                 wa_csks-bukrs
+                 wa_csks-gsber
+                 wa_csks-verak
+                 wa_csks-bkzkp
+                 wa_csks-datab
+                 wa_csks-datbi
+                 INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+******************* Centro de contas Modificado
+  CLEAR lt_conteudo.
+  CLEAR it_cdhdr.
+  CONCATENATE p_save '\INFINITFY_CENTRO_CUSTO_MOD_' lv_datetime '.txt' INTO lv_filename.
+  DATA lv_objectid1 TYPE c LENGTH 10.
+  SELECT * INTO TABLE it_csks FROM csks.
+  CONCATENATE  ' Código'
+           ' Area_Contabilidade'
+           ' Descrição'
+           ' Empresa'
+           ' Unidade'
+           ' Responsável'
+           ' Bloqueado'
+           ' Valido_Desde'
+           ' Valido_Ate'
+           INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_csks INTO wa_csks.
+    lv_objectid1 = wa_csks-kostl.
+    lv_objectid1 = |{ lv_objectid1 ALPHA = IN }|.
+    DATA(lv_objectid) = |{ wa_csks-kokrs }{ lv_objectid1 }|.
+    SELECT * INTO TABLE it_cdhdr FROM cdhdr WHERE objectid = lv_objectid AND objectclas = obj_ccusto AND udate BETWEEN p_dt_i AND p_dt_f.
+    LOOP AT it_cdhdr INTO wa_cdhdr.
+      READ TABLE it_cskt INTO wa_cskt WITH KEY kostl = wa_csks-kostl kokrs = wa_csks-kokrs.
+      lv_ltext = wa_cskt-ltext.
+      CONCATENATE  wa_csks-kostl
+                   wa_csks-kokrs
+                   lv_ltext
+                   wa_csks-bukrs
+                   wa_csks-gsber
+                   wa_csks-verak
+                   wa_csks-bkzkp
+                   wa_csks-datab
+                   wa_csks-datbi
+                   INTO lv_line SEPARATED BY ' | '.
+      APPEND lv_line TO lt_conteudo.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_cdl EQ 'X'.
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_LUCRO_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Valido_Desde'
+              'Valido_Ate'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+
+  SELECT * INTO TABLE it_cepc FROM cepc WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+  SELECT * INTO TABLE it_cepct FROM cepct.
+  SELECT * INTO TABLE it_cepc_bukrs FROM cepc_bukrs.
+  SORT it_cepct BY prctr.
+
+  LOOP AT it_cepc INTO wa_cepc.
+    READ TABLE it_cepct INTO wa_cepct WITH KEY prctr = wa_cepc-prctr BINARY SEARCH.
+    CONCATENATE wa_cepc-prctr
+                wa_cepct-ktext
+                INTO lv_line SEPARATED BY ' | '.
+    LOOP AT it_cepc_bukrs INTO wa_cepc_bukrs WHERE kokrs = wa_cepc-kokrs AND prctr = wa_cepc-prctr.
+      CONCATENATE wa_cepc_bukrs-bukrs
+                   ' '
+        INTO lv_line2 SEPARATED BY ' - '.
+    ENDLOOP.
+    CONCATENATE
+          wa_cepc-verak
+          wa_cepc-lock_ind
+          wa_cepc-datab
+          wa_cepc-datbi
+          INTO lv_line3 SEPARATED BY ' | '.
+    lv_line = |{ lv_line }{ lv_line2 }{ lv_line3 }|.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+****************** Lucro modificadas
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_CENTRO_LUCRO_MOD_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Valido_Desde'
+              'Valido_Ate'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  SELECT * INTO TABLE it_cepc FROM cepc WHERE ersda BETWEEN p_dt_i AND p_dt_f.
+  LOOP AT it_cepc INTO wa_cepc.
+    DATA lv_obj_clucro1 TYPE c LENGTH 10.
+    lv_obj_clucro1 = wa_cepc-prctr.
+    lv_obj_clucro1 = |{ lv_obj_clucro1 ALPHA = OUT }|.
+    lv_obj_clucro1 = |{ wa_cepc-kokrs }{ lv_obj_clucro1 }|.
+*    SELECT FROM CDHDR WHERE OBJECTCLAS = OBJ_CLUCRO AND OBJECTID = lv_obj_clucro1 AND lv_obj_clucro2.
+  ENDLOOP.
+ENDIF.
+
+**********************************
+
+
+IF box_odi EQ 'X'. " TABELA COAS ESTA ZERADA NO SISTEMA - fiz a logica mas nao consegui testar
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_ORDEM_INVESTIMENTO_' lv_datetime '.txt' INTO lv_filename.
+
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Status Sistema'
+              'Status Usuário'
+              'Validação'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_parametros_invest INTO wa_parametros_invest.
+    SELECT * FROM coas INTO TABLE it_coas WHERE autyp = wa_parametros_invest-valor AND erdat BETWEEN p_dt_i AND p_dt_f. " Tirar duvida do select (erro no tipo do campo AUTYP na it)
+    LOOP AT it_coas INTO wa_coas.
+      READ TABLE lt_system_status INTO wa_system_status INDEX 1.
+      READ TABLE lt_user_status INTO wa_user_status INDEX 1.
+      READ TABLE lt_allowed_bus_tract INTO wa_allowed_status INDEX 1.
+      PERFORM  BAPI_Bloc. "https://www.se80.co.uk/sap-function-modules/?name=bapi_internalorder_getdetail
+      CONCATENATE wa_coas-aufnr
+                  wa_coas-ktext
+                  wa_coas-bukrs
+                  wa_coas-werks
+                  wa_coas-user2
+                  lv_return
+                  wa_system_status-istat
+                  wa_user_status-estat " Faltou fazer a validacao Se TJ02T-ISTAT = SYS_BLOK ou TJ30T-ESTAT = USU_BLOK, será retornado “X”.
+                  INTO lv_line SEPARATED BY ' | '.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+***************** Investimento modificadas
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_ORDEM_INVESTIMENTO_MOD_' lv_datetime '.txt' INTO lv_filename.
+
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              'Status Sistema'
+              'Status Usuário'
+              'Validação'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_parametros_invest INTO wa_parametros_invest.
+    SELECT * FROM coas INTO TABLE it_coas WHERE autyp = wa_parametros_invest-valor AND erdat BETWEEN p_dt_i AND p_dt_f AND aedat BETWEEN p_dt_i AND p_dt_f. " Tirar duvida do select (erro no tipo do campo AUTYP na it)
+    LOOP AT it_coas INTO wa_coas.
+      READ TABLE lt_system_status INTO wa_system_status INDEX 1.
+      READ TABLE lt_user_status INTO wa_user_status INDEX 1.
+      READ TABLE lt_allowed_bus_tract INTO wa_allowed_status INDEX 1.
+      PERFORM  BAPI_Bloc. "https://www.se80.co.uk/sap-function-modules/?name=bapi_internalorder_getdetail
+      CONCATENATE wa_coas-aufnr
+                  wa_coas-ktext
+                  wa_coas-bukrs
+                  wa_coas-werks
+                  wa_coas-user2
+                  lv_return
+                  wa_system_status-istat
+                  wa_user_status-estat " Faltou fazer a validacao Se TJ02T-ISTAT = SYS_BLOK ou TJ30T-ESTAT = USU_BLOK, será retornado “X”.
+                  INTO lv_line SEPARATED BY ' | '.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.
+
+**********************************
+
+IF box_epep EQ 'X'.
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_ELEMENTO_PEP_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  SELECT pspnr post1 verna pbukr werks FROM prps INTO CORRESPONDING FIELDS OF TABLE it_prps WHERE erdat BETWEEN p_dt_i AND p_dt_f.
+  PERFORM bapi_pep.
+  LOOP AT it_prps INTO wa_prps.
+    ls_i_wbs_element-wbs_element = wa_prps-pspnr.
+    APPEND ls_i_wbs_element TO lt_i_wbs_elements.
+    PERFORM status_desc.
+    CONCATENATE wa_prps-pspnr
+                wa_prps-post1
+                wa_prps-pbukr
+                wa_prps-werks
+                wa_prps-verna
+                p_status_text
+                p_bloqueado_us
+                p_bloqueado_val
+                INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+***************************************  ELEMENTO PEP  MODIFICADO
+  CLEAR lt_conteudo.
+  CONCATENATE p_save '\INFINITFY_ELEMENTO_PEP_MOD_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  SELECT pspnr post1 verna pbukr werks FROM prps INTO CORRESPONDING FIELDS OF TABLE it_prps WHERE erdat BETWEEN p_dt_i AND p_dt_f AND aedat BETWEEN p_dt_i AND p_dt_f.
+  PERFORM bapi_pep.
+  LOOP AT it_prps INTO wa_prps.
+    ls_i_wbs_element-wbs_element = wa_prps-pspnr.
+    APPEND ls_i_wbs_element TO lt_i_wbs_elements.
+    PERFORM status_desc.
+    CONCATENATE wa_prps-pspnr
+                wa_prps-post1
+                wa_prps-pbukr
+                wa_prps-werks
+                wa_prps-verna
+                p_status_text
+                p_bloqueado_us
+                p_bloqueado_val
+
+                INTO lv_line SEPARATED BY ' | '.
+    APPEND lv_line TO lt_conteudo.
+
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+
+ENDIF.
+
+**********************************
+
+IF box_ntw EQ 'X'.
+  CLEAR: lt_conteudo, it_coas, wa_coas.
+  CONCATENATE p_save '\INFINITFY_ELEMENTO_PEP_MOD_' lv_datetime '.txt' INTO lv_filename.
+  CONCATENATE 'Código'
+              'Operação'
+              'PEP'
+              'Descrição'
+              'Empresa'
+              'Unidade'
+              'Responsável'
+              'Bloqueado'
+              INTO lv_line SEPARATED BY ' | '.
+  APPEND lv_line TO lt_conteudo.
+  LOOP AT it_parametros_invest INTO wa_parametros_invest.
+    SELECT aufnr pspel ktext bukrs werks FROM coas INTO CORRESPONDING FIELDS OF TABLE it_coas WHERE erdat BETWEEN p_dt_i AND p_dt_f.
+    LOOP AT it_coas INTO wa_coas.
+      PERFORM bapi_network_getdetail.
+      LOOP AT lt_activity INTO ls_activity.
+        READ TABLE it_prps INTO wa_prps WITH KEY pspnr = wa_coas-pspel.
+        PERFORM bapi_bus2002_get_status.
+        CONCATENATE wa_coas-pspel
+                    wa_coas-ktext
+                    wa_coas-bukrs
+                    wa_coas-werks
+                    wa_prps-verna
+                    p_status_text
+                    p_status_user_text
+                    p_bloqueado_us
+                    p_bloqueado_val
+                    INTO lv_line SEPARATED BY ' | '.
+        APPEND lv_line TO lt_conteudo.
+      ENDLOOP.
+    ENDLOOP.
+  ENDLOOP.
+  PERFORM salvar_em_texto.
+ENDIF.

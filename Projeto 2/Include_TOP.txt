@@ -1,0 +1,138 @@
+*&---------------------------------------------------------------------*
+*& Include          ZEF_EXTRATOR_DM_TOP
+*&---------------------------------------------------------------------*
+
+TABLES: t004, "-> tabela de consulta do plano de contas
+        t001, "-> Tabela de consulta de empresas
+        t880, "-> Tabela de consulta de Sociedade parceira
+        tgsb, "-> Tabela de divisao
+        t001k,"-> Tabela de centro de distribuicao
+        t001w,"-> Tabela de auxilio para avaliacao do centro de distribuicao
+        ska1, "-> Tabela de consulta para data de criacao
+        skb1, "-> Tabela de consulta para data de ultima modificacao
+        t004f,"-> Tabela de definicao de status do grupo
+        cdhdr,"-> Tabela de modificacoes
+        csks, "-> Tabela para consultas Centro de custo
+        cskt, "-> Tabela com os textos dos Centros de custo
+        cepc, "-> Tabela para consulta Centro de lucro
+        cepc_bukrs, "-> Tabela de Atribuicao dos Centro de lucro pelo codigo da comp.
+        cepct, "-> Tabela com os textos dos Centros de lucro
+        cmdt_pc,
+        coas, "-> Tabela para consulta nas ordens de controle
+        tj02t,"-> Tabela de texto de status do sistema
+        tj30t,"-> Tabela de texto de status do usuario
+        prps. "-> Tabela de WBS
+
+* CONSTANTE FILIAL
+TYPES: BEGIN OF ty_parametros, " Tipo de parametros
+         valor TYPE j_1bbranch-branch, " https://www.se80.co.uk/sap-function-modules/?name=j_1b_branch_read
+       END OF ty_parametros.
+DATA: it_parametros TYPE TABLE OF ty_parametros, " Tabela interna de parametros
+      wa_parametros TYPE ty_parametros. " Work area de parametros
+wa_parametros-valor = '7000'.
+APPEND wa_parametros TO it_parametros.
+wa_parametros-valor = '7020'.
+APPEND wa_parametros TO it_parametros.
+wa_parametros-valor = '7060'.
+APPEND wa_parametros TO it_parametros.
+
+* CONSTANTE CAT_ORDER
+TYPES: BEGIN OF ty_parametros_invest, " Tipo de parametros para consulta de investimentos
+         valor TYPE aufnr,
+       END OF ty_parametros_invest.
+DATA: it_parametros_invest TYPE TABLE OF ty_parametros_invest, " Tabela interna de parametros
+      wa_parametros_invest TYPE ty_parametros_invest. " Work area de parametros
+DATA: it_parametros_invest_MD TYPE TABLE OF ty_parametros_invest, " Tabela interna de parametros
+      wa_parametros_invest_MD TYPE ty_parametros_invest. " Work area de parametros
+wa_parametros_invest-valor = '01'.
+APPEND wa_parametros_invest TO it_parametros_invest.
+wa_parametros_invest-valor = '02'.
+APPEND wa_parametros_invest TO it_parametros_invest.
+wa_parametros_invest-valor = '03'.
+APPEND wa_parametros_invest TO it_parametros_invest.
+
+CONSTANTS OBJ_CONTA TYPE string VALUE 'SACH'.
+CONSTANTS OBJ_CCUSTO TYPE string VALUE 'KOSTL'.
+CONSTANTS OBJ_LUCRO TYPE string VALUE 'PRCTR'.
+CONSTANTS: c_usu_blok  TYPE j_status VALUE 'E0002',
+           c_sys_blok1 TYPE j_status VALUE 'I0045',
+           c_sys_blok2 TYPE j_status VALUE 'I0046'.
+
+DATA: branch_value TYPE n,
+      it_t001 TYPE STANDARD TABLE OF t001,
+      wa_t001 TYPE t001,
+      it_t880 TYPE STANDARD TABLE OF t880,
+      wa_t880 TYPE t880,
+      it_tgsb TYPE STANDARD TABLE OF tgsb,
+      wa_tgsb TYPE tgsb,
+      it_t001w TYPE STANDARD TABLE OF t001w,
+      wa_t001w TYPE t001w,
+      emp_cnpj    TYPE j_1bcgc,
+      wa_insc_est TYPE j_1bbranch,
+      wa_endereco_v TYPE addr1_val,
+      wa_cidade_est TYPE sadr,
+      it_ska1 TYPE STANDARD TABLE OF ska1,
+      wa_ska1 TYPE ska1,
+      it_skb1 TYPE  STANDARD TABLE OF skb1,
+      wa_skb1 TYPE skb1,
+      wa_faus1 TYPE faus1,
+      lv_text TYPE string,
+      lv_filename TYPE string,
+      lt_conteudo TYPE TABLE OF string,
+      lv_line     TYPE string,
+      lv_line2    TYPE string,
+      lv_line3    TYPE string,
+      lv_datetime TYPE string,
+      it_cdhdr TYPE STANDARD TABLE OF cdhdr,
+      wa_cdhdr TYPE cdhdr,
+      it_csks TYPE STANDARD TABLE OF csks,
+      wa_csks TYPE csks,
+      it_cskt TYPE STANDARD TABLE OF cskt,
+      wa_cskt TYPE cskt,
+      it_cepc TYPE STANDARD TABLE OF cepc,
+      wa_cepc TYPE cepc,
+      it_cepct TYPE STANDARD TABLE OF cepct,
+      wa_cepct TYPE cepct,
+      it_cepc_bukrs TYPE STANDARD TABLE OF cepc_bukrs,
+      wa_cepc_bukrs TYPE cepc_bukrs,
+      it_cmdt_pc TYPE STANDARD TABLE OF cmdt_pc,
+      wa_cmdt_pc TYPE cmdt_pc,
+      it_coas TYPE TABLE OF coas,
+      wa_coas TYPE coas,
+      it_cat_order TYPE TABLE OF ty_parametros, " Tabela interna de parametros
+      wa_cat_order TYPE ty_parametros, " Work area de parametros
+      lv_return TYPE bapireturn,
+      lt_system_status     TYPE STANDARD TABLE OF tj02t,
+      wa_system_status     TYPE tj02t,
+      lt_user_status       TYPE STANDARD TABLE OF tj30t,
+      wa_user_status       TYPE tj30t,
+      lt_allowed_bus_tract TYPE STANDARD TABLE OF bapi2075_5,
+      wa_allowed_status    TYPE bapi2075_5,
+      it_prps TYPE STANDARD TABLE OF prps,
+      wa_prps TYPE prps,
+      ls_i_wbs_element   TYPE bapi_wbs_elements,
+      lv_return2         TYPE bapireturn1,
+      lv_return3         TYPE bapiret2,
+      lt_i_wbs_elements	 TYPE STANDARD TABLE OF bapi_wbs_elements,
+      lt_e_system_status TYPE STANDARD TABLE OF bapi_wbs_system_status,
+      lt_e_user_status   TYPE STANDARD TABLE OF bapi_wbs_user_status,
+      ls_e_user_status   TYPE bapi_wbs_user_status,
+      lt_e_result	       TYPE STANDARD TABLE OF bapi_status_result,
+      ls_e_system_status TYPE bapi_wbs_system_status,
+      lv_syst_status     TYPE j_status,
+      lv_status_text     TYPE tj02t-txt30,
+      lv_istat           TYPE tj02t-istat,
+      lv_user_status     TYPE j_status,
+      lv_estat           TYPE tj30t-estat,
+      p_status_text      TYPE string,
+      p_status_user_text TYPE string,
+      p_bloqueado_us     TYPE char1,
+      p_bloqueado_val    TYPE char1,
+      lt_activity         TYPE TABLE OF bapi_network_activity,
+      ls_activity         TYPE bapi_network_activity,
+      it_activity_status  TYPE STANDARD TABLE OF bapi_activity_system_status,
+      wa_activity_status  TYPE bapi_activity_system_status,
+      lv_status_desc      TYPE tj02t-txt04,
+      it_user_bapi_status TYPE STANDARD TABLE OF bapi_user_status,
+      wa_user_bapi_status TYPE bapi_user_status,
+      lv_status_user      TYPE tj30t-txt04.
