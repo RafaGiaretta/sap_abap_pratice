@@ -3,6 +3,9 @@
 ## Visão Geral
 Este repositório contém o código-fonte de um programa responsável pela extração de dados mestres para o portal Nota de Débito. Os dados devem ser filtrados conforme a opção selecionada e podem ser salvos localmente ou em um servidor.
 
+
+<img src="https://i.ibb.co/whh2VNyz/image.png">
+
 ## Estrutura do Repositório
 O repositório é composto pelos seguintes arquivos principais:
 
