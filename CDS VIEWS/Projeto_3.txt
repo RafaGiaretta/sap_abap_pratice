@@ -1,0 +1,20 @@
+@AbapCatalog.sqlViewName: 'ZV_PED_ABERTOS'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Relatorio de Pedidos de Compras Abertos'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDD_PEDIDOS_ABERTO as 
+select from ekko as T1 left outer join ekpo as T2
+on T1.ebeln = T2.ebeln left outer join lfa1 as T3
+on T1.lifnr = T3.lifnr 
+{
+    key T1.ebeln as N_PEDIDO,
+        T1.bukrs as EMPRESA,
+        T1.bedat as DATA_PEDIDO,
+        T3.name1 as FORNECEDOR,
+        concat_with_space( T3.ort01 , T3.land1, 1) as ENDERECO,
+        (T2.menge * T2.netpr)  as VALOR_ABERTO
+    
+}
+where T2.elikz <> 'X'

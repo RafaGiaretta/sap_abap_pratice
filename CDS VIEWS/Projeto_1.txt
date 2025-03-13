@@ -1,0 +1,29 @@
+@AbapCatalog.sqlViewName: 'ZV_VENDAS'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Documentos de vendas - Cabecalho'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDD_VENDAS as 
+select from vbak as T1
+left outer join  kna1 as T2 
+on T1.kunnr = T2.kunnr left outer join vbap as t3
+on t3.vbeln = T1.vbeln
+{
+    key T1.vbeln as N_Documento,
+    T1.erdat as Data_Criacao,
+    T1.audat as Data_Recebimento,
+    T1.kunnr as Numero_Cliente,
+    concat_with_space(T2.name1, T2.name2, 1) as Nome_Cliente,
+    sum(t3.netwr) as Total_Vendas
+    
+}
+group by 
+    T1.kunnr,
+    T1.vbeln,
+    T1.erdat,
+    T1.audat,
+    T2.name1,
+    T2.name2,
+    t3.posnr;
+    

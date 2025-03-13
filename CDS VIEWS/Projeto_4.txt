@@ -1,0 +1,26 @@
+@AbapCatalog.sqlViewName: 'ZV_COMP_FAT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Comparacao de faturamento anual (Ultimos dois anos)'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDD_COMP_FAT as
+select from vbrk as T1
+{
+    key vbeln as N_FATURA,
+        gjahr as ANO_FATURA,
+        cast('000000' as abap.numc(6)) as N_ITEM,
+        cast( 0 as abap.curr( 15, 2)) as VALOR_LIQ 
+}
+where gjahr between  '2024' and '2025' 
+union all
+select from vbrp
+
+{
+        vbeln as N_FATURA,
+        cast('0000' as abap.numc(4)) as ANO_FATURA,
+        posnr as N_ITEM,
+        sum(netwr) as VALOR_LIQ        
+}
+
+group by vbeln, posnr

@@ -1,0 +1,20 @@
+@AbapCatalog.sqlViewName: 'ZV_ESTOQUE_MAT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Dados de Estoque por Centro'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDD_ESTOQUE_CENTRO as 
+select from mard as T1 left outer join makt as T2 
+on T1.matnr = T2.matnr left outer join  t001w as t3
+on T1.werks = t3.werks
+{
+    key T1.matnr as Codigo_Material,
+    T2.maktx as Nome_Material,    
+    t3.werks as Centro,
+    (case when T1.labst = 0 then 'Sem estoque' 
+          when T1.labst between 1 and 50 then 'Estoque baixo'
+          when T1.labst > 50 then 'Alto estoque' else 'Estoque invalido' end) as Estoque_Disponivel,
+    concat_with_space(t3.werks, cast(T1.labst as abap.char( 20 )), 1)  as Estoque
+   
+}   
