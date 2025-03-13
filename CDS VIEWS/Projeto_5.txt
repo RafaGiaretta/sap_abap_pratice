@@ -1,0 +1,24 @@
+@AbapCatalog.sqlViewName: 'ZV_PRAZO_PAG'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Relatorio de Prazos de Pagamento por Cliente'
+@Metadata.ignorePropagatedAnnotations: true
+define view ZDD_PRAZO_PAG 
+with parameters
+    p_land : land1 
+as 
+select from kna1 as T1 inner join knb1 as T2 
+on T1.kunnr = T2.kunnr inner join t052 as T3 
+on T2.zterm = T3.zterm
+{
+    T1.kunnr as COD_CLI,
+    T1.name1 as NOME,
+    T1.land1 as PAIS,
+    T2.bukrs as COD_EMP,
+    T2.zterm as COD_PG,
+    T3.ztag1 as VENC1,
+    T3.ztag2 as VENC2,
+    T3.ztag3 as VENC3 
+}
+where T1.land1 = :p_land
