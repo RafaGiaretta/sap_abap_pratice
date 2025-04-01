@@ -1,0 +1,22 @@
+https://medium.com/@arslansefa/adding-filter-parameters-to-request-url-using-groovy-script-in-sap-cpi-3c8dcf5eafaf
+
+
+groovy 
+
+import com.sap.gateway.ip.core.customdev.util.Message;
+import java.util.HashMap;
+import java.io.*;
+import javax.ws.rs.core.Context;def Message processData(Message message) {
+    
+    def body = message.getBody(java.lang.String) as String;
+    def uri = message.getHeaders().get("CamelHttpQuery");
+    if(uri != null && !uri.isEmpty()){
+        message.setHeader("filterKey",uri);
+        message.setBody(body);
+        return message;
+    }else {
+        message.setHeader("filterKey","");
+        message.setBody(body);
+        return message;
+    } 
+}

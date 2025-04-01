@@ -1,0 +1,73 @@
+*&---------------------------------------------------------------------*
+*& Report Z_SCREENS_1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT z_screens_1.
+
+
+TABLES: zemployees.
+
+DATA: wa_employee LIKE zemployees-employee.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK myblock1 WITH FRAME TITLE TEXT-001.
+SELECTION-SCREEN BEGIN OF LINE.
+
+  SELECTION-SCREEN POSITION POS_HIGH.
+  PARAMETERS abc(5).
+  SELECTION-SCREEN COMMENT 1(15) TEXT-002.
+  SELECTION-SCREEN POSITION POS_HIGH.
+
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN END OF BLOCK myblock1.
+
+
+  SELECT-OPTIONS my_ee FOR zemployees-employee NO-EXTENSION.
+
+  PARAMETERS:
+    my_box1  AS CHECKBOX,
+    wa_green RADIOBUTTON GROUP grp1,
+    wa_red   RADIOBUTTON GROUP grp1,
+    wa_blue  RADIOBUTTON GROUP grp1.
+
+
+
+  SELECTION-SCREEN ULINE.
+
+  SELECT-OPTIONS my_dob FOR zemployees-dob NO-EXTENSION .
+
+
+
+
+INITIALIZATION.
+  com-1 = 'Hello :)'.
+  SELECT * FROM zemployees.
+    wa_employee = zemployees-employee.
+  ENDSELECT.
+
+  WRITE wa_employee.
+
+AT SELECTION-SCREEN ON my_ee.
+* Check to make sure the employee number is not greater than the last employee number in table.
+
+  IF my_ee > wa_employee.
+* DISPLAY A MESSAGE
+    MESSAGE e001(zmes1) WITH my_ee.
+  ENDIF.
+*
+*  table
+*  sign - i & E (Inclusion - Exclude values)
+*  OPTION - EQ, NE, GT, LE, LT, CP & NP  (* OR +).
+*  low - low limiter value
+*  high - hight limiter value
+
+  SELECT * FROM  zemployees.
+    IF zemployees-employee IN my_ee.
+      WRITE: / zemployees.
+    ENDIF.
+  ENDSELECT.
+
+
+  WRITE : / 'Surname'.
+  WRITE : / TEXT-001.

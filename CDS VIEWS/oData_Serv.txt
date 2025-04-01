@@ -1,0 +1,19 @@
+Como criar e consumir um serviço oData a partir de uma CDS View
+
+Passo a passo:
+
+Coloque a anotação "@OData.publish: true" na CDS View e ative
+Acesse a transação /n/IWFND/MAINT_SERVICE
+Clique em Add Service
+Coloque LOCAL no System Alias e clique em Get Services
+Selecione o serviço e clique em Add Selected Services
+Coloque o pacote e confirme
+Pronto, seu serviço esta criado
+
+Para consumir, siga os passos:
+
+Acesse a transação /n/IWFND/MAINT_SERVICE
+Procure o serviço criado, clique no nome do serviço e clique no botão "SAP Gateway Client" ou no "Call browser" para testar no navegador
+
+
+

@@ -2,3 +2,69 @@ REFERENCIAS: https://www.youtube.com/watch?v=pSg0PR0hzjc&list=PLnpMwD8LFgjhsNU6J
 
 
 CDS VIEWS -> BASICO -> GROUP BY E HAVING -> CAMPOS CALCULADOS, FUNCOES, CASTING E CASE -> JOINS -> ASSOCIACAO -> UNION -> PARAMETROS
+
+PROJETOS ATE AQUI: 
+
+Projeto 1: Relatório de Vendas por Cliente
+Objetivo: Criar uma CDS View que exiba o total de vendas por cliente.
+
+Tabelas sugeridas:
+
+VBAK (Documentos de vendas - Cabeçalho)
+VBAP (Itens de vendas)
+KNA1 (Clientes)
+Recursos utilizados:
+
+Joins
+Group By
+Funções agregadas (SUM para calcular o total de vendas)
+Projeto 2: Estoque de Materiais por Centro
+Objetivo: Criar uma CDS View que liste os materiais e seus estoques por centro.
+
+Tabelas sugeridas:
+
+MARD (Estoque por centro)
+MAKT (Descrição de materiais)
+T001W (Centros)
+Recursos utilizados:
+
+Joins
+Casting (converter tipos de dados)
+Case (para categorizar materiais)
+Projeto 3: Relatório de Pedidos de Compras Abertos
+Objetivo: Criar uma CDS View para listar os pedidos de compra que ainda não foram entregues.
+
+Tabelas sugeridas:
+
+EKKO (Cabeçalho de pedido de compras)
+EKPO (Itens do pedido)
+LFA1 (Fornecedores)
+Recursos utilizados:
+
+Joins e Associações
+Condição WHERE para filtrar pedidos não entregues
+Funções para calcular valores pendentes
+Projeto 4: Comparação de Faturamento Anual
+Objetivo: Criar uma CDS View para comparar o faturamento dos últimos dois anos.
+
+Tabelas sugeridas:
+
+VBRK (Cabeçalho de faturas)
+VBRP (Itens da fatura)
+Recursos utilizados:
+
+Group By e Having
+Funções agregadas
+Union para consolidar diferentes anos
+Projeto 5: Relatório de Prazos de Pagamento por Cliente
+Objetivo: Criar uma CDS View para exibir os clientes e seus prazos de pagamento.
+
+Tabelas sugeridas:
+
+KNA1 (Clientes)
+KNB1 (Dados financeiros do cliente)
+T052 (Condições de pagamento)
+Recursos utilizados:
+
+Joins e Associações
+Parâmetros para filtrar clientes por país ou tipo de conta
